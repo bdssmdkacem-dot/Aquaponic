@@ -582,3 +582,50 @@ er o) {
 
     const Color outer = Color(0xFF4F5F6A);
     cv.drawPath(segs(null), _stroke(outer, .34 * c, cap: StrokeCap.round));
+rokeCap.round));
+    dots(.17 * c, _fill(outer), null);
+    for (final bool fl in const <bool>[false, true]) {
+      final Color inner = fl ? const Color(0xFF67BFF0) : const Color(0xFFCBD5DB);
+      cv.drawPath(segs(fl), _stroke(inner, .2 * c, cap: StrokeCap.round));
+      dots(.1 * c, _fill(inner), fl);
+    }
+    // flowing dashes
+    final Paint dash = _stroke(rgba(255, 255, 255, .85), .09 * c, cap: StrokeCap.round);
+    final double dl = .1 * c, gp = .28 * c, period = dl + gp;
+    final double shift = (tm * .7 * c) % period;
+    for (final _PipeInfo q in info) {
+      if (!q.flow) continue;
+      final double cx = (q.x + .5) * c, cy = (q.y + .5) * c;
+      final double len = c / 2;
+      for (final List<int> d in q.dirs) {
+        for (double s = shift - period; s < len; s += period) {
+          final double a = math.max(0.0, s);
+          final double b = math.min(len, s + dl);
+          if (b <= a) continue;
+          cv.drawLine(Offset(cx + d[0] * a, cy + d[1] * a), Offset(cx + d[0] * b, cy + d[1] * b), dash);
+        }
+      }
+    }
+  }
+
+  // ------------------------------------------------------------ overlays
+
+  void _overlays() {
+    final Selection? sel = ctl.sel;
+    if (sel != null) {
+      if (sel.kind == SelKind.obj) {
+        final GameObj? o = ctl.selObj;
+        if (o != null) {
+          _dashedRRect(_rr(o.x * c - 2, o.y * c - 2, o.w * c + 4, o.h * c + 4, 8),
+              _stroke(const Color(0xFFFFD23F), 2.5), 6, 4, tm * 14);
+          if (sel.slot >= 0 && o is Bed && sel.slot < o.slots.length) {
+            final Pt p = slotPos(o, sel.slot);
+            cv.drawRRect(_rr(p.x * c + 2, p.y * c + 2, c - 4, c - 4, 6), _stroke(Colors.white, 2));
+          }
+        }
+      } else {
+        final Net? n = sim.pipeNet[sel.id];
+        final Paint ring = _stroke(const Color(0xFFFFD23F), 2);
+        sim.pipeNet.forEach((int k, Net v) {
+          if (identical(v, n)) {
+            cv.drawCircle(Offset((k % kCols + .5) * c, (k ~/ kCols + .5) * c), .26 * c,
