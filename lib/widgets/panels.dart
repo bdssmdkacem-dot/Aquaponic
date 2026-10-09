@@ -228,3 +228,17 @@ class _TankPanel extends StatelessWidget {
 
 
 // Bed panel restoration continues in the following source chunks.
+
+class _BedPanel extends StatelessWidget {
+  final AquaController ctl;
+  final Bed bed;
+  const _BedPanel({required this.ctl, required this.bed});
+
+  @override
+  Widget build(BuildContext context) {
+    final Sim s = ctl.sim;
+    final NetStatus st = s.netStatus(bed.net);
+    final Selection? sel = ctl.sel;
+    final Slot? one = (sel != null && sel.slot >= 0 && sel.slot < bed.slots.length)
+        ? bed.slots[sel.slot]
+        : null;
