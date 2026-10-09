@@ -657,3 +657,35 @@ class Sim {
     rebuild();
     toast('🗑️ تمت الإزالة (+$refund💰)', 'info');
   }
+
+  bool expand() {
+    final int i = (rows - kMinRows) ~/ 2;
+    if (i >= kExpand.length) return false;
+    if (coins < kExpand[i]) {
+      toast('💰 النقود لا تكفي', 'warn');
+      return false;
+    }
+    coins -= kExpand[i];
+    rows += 2;
+    for (final GameObj o in objs) {
+      o.y += 2;
+    }
+    final Set<int> np = <int>{};
+    for (final int k in pipes) {
+      np.add((k ~/ kCols + 2) * kCols + (k % kCols));
+    }
+    pipes = np;
+    rebuild();
+    toast('🏗️ تم توسيع الدفيئة', 'good');
+    return true;
+  }
+
+  bool buyFood() {
+    if (coins < 15) {
+      toast('💰 النقود لا تكفي', 'warn');
+      return false;
+    }
+    coins -= 15;
+    food += 6;
+    return true;
+  }
