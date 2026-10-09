@@ -302,3 +302,72 @@ class _BedPanel extends StatelessWidget {
   }
 }
 
+class _PumpPanel extends StatelessWidget {
+  final AquaController ctl;
+  final Pump pump;
+  const _PumpPanel({required this.ctl, required this.pump});
+
+  @override
+  Widget build(BuildContext context) {
+    final Net? n = pump.net;
+    final bool armedDel = ctl.delArm == pump.id;
+    final int refund = (kTypes[ObjType.pump]!.cost * 0.6).round();
+    String tag;
+    bool? ok;
+    if (pump.broken) {
+      tag = '🔧 معطلة (انسداد)';
+      ok = false;
+    } else if (n != null && n.tanks.isNotEmpty) {
+      tag = '✔ تعمل';
+      ok = true;
+    } else {
+      tag = '✖ غير متصلة بحوض سمك';
+      ok = false;
+    }
+    final int plants =
+        n == null ? 0 : n.beds.fold(0, (int a, Bed b) => a + b.slots.where((Slot x) => x.alive).length);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        _header(context, '💧 مضخة ماء', tag: tag, tagOk: ok),
+        NoteText(
+            'تدفع الماء عبر الأنابيب. سعة الشبكة: ${n?.cap ?? 0} نبات · نباتات مرتبطة: $plants\n'
+            'وصّل المضخة بحوض السمك وبأحواض الزراعة عبر أنابيب.'),
+        Row(
+          children: <Widget>[
+            Expanded(child: AquaBtn('🔧 تنظيف / إصلاح',
+                kind: BtnKind.primary, onTap: pump.broken ? () => ctl.fixPump(pump) : null)),
+            const SizedBox(width: 6),
+            Expanded(child: AquaBtn(armedDel ? '⚠️ تأكيد (+$refund)' : '🗑️ إزالة',
+                kind: BtnKind.danger, onTap: () => ctl.deletePressed(pump))),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _AirPanel extends StatelessWidget {
+  final AquaController ctl;
+  final Air air;
+  const _AirPanel({required this.ctl, required this.air});
+
+  @override
+  Widget build(BuildContext context) {
+    final bool armedDel = ctl.delArm == air.id;
+    final int refund = (kTypes[ObjType.air]!.cost * 0.6).round();
+    final Tank? t = air.tank;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        _header(context, '💨 مضخة أكسجين',
+            tag: t != null ? '✔ متصلة بـ${ctl.sim.tankName(t)}' : '✖ غير ملاصقة لحوض', tagOk: t != null),
+        const NoteText(
+            'ترفع الأكسجين في الحوض الملاصق لها. حتى 3 مضخات لكل حوض — الأسماك الكبيرة والكثيفة (والسلمون) تحتاج أكثر.'),
+        AquaBtn(armedDel ? '⚠️ اضغط للتأكيد (+$refund💰)' : '🗑️ إزالة',
+            kind: BtnKind.danger, onTap: () => ctl.deletePressed(air)),
+      ],
+    );
+  }
+}
+
