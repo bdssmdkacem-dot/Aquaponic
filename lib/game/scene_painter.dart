@@ -374,4 +374,44 @@ class ScenePainter {
     final bool flow = n != null && n.cap > 0;
     final RRect pillar = _rr(X + w / 2 - .07 * c, Y + .05 * c, .14 * c, 3.1 * c, 3);
     cv.drawRRect(pillar, _fill(const Color(0xFFE8EEF2)));
-    cv.
+    cv.drawRRect(pillar, _stroke(const Color(0xFFB5C3CC), 1));
+    final Paint post = _fill(const Color(0xFFCFD8DE));
+    cv.drawRect(Rect.fromLTWH(X + .03 * c, Y + .1 * c, .07 * c, 3.05 * c), post);
+    cv.drawRect(Rect.fromLTWH(X + w - .1 * c, Y + .1 * c, .07 * c, 3.05 * c), post);
+    for (int r = 0; r < 3; r++) {
+      final double sy = Y + r * c + .72 * c;
+      cv.drawRRect(_rr(X + .04 * c, sy, w - .08 * c, .28 * c, 4), _fill(const Color(0xFF7F6045)));
+      cv.drawRect(Rect.fromLTWH(X + .06 * c, sy + .2 * c, w - .12 * c, .07 * c), _fill(const Color(0xFFA7825A)));
+    }
+    for (int i = 0; i < o.slots.length; i++) {
+      final Pt p = slotPos(o, i);
+      final Slot s = o.slots[i];
+      if (s.has) _plant((p.x + .5) * c, (p.y + .76) * c, s);
+    }
+    final RRect basin = _rr(X + .02 * c, Y + 3.05 * c, w - .04 * c, .93 * c, 6);
+    cv.drawRRect(basin, _fill(const Color(0xFFB8905F)));
+    cv.drawRRect(basin, _stroke(const Color(0xFF8F6A40), 2));
+    _waterWindow(X + .14 * c, Y + 3.22 * c, w - .28 * c, .5 * c, flow);
+    if (o.thirsty && !flow) _emoji('🔌', X + w / 2, Y + 3.5 * c, .34 * c);
+  }
+
+  // -------------------------------------------------------------- plants
+
+  void _plant(double cx, double by, Slot s) {
+    final CropInfo cr = kCrops[s.crop]!;
+    final double g = clampD(s.g, .08, 1);
+    final double sz = c * (.24 + .6 * g);
+    if (s.dead) {
+      final Path p = Path()
+        ..moveTo(cx, by)
+        ..quadraticBezierTo(cx, by - sz * .6, cx + sz * .4, by - sz * .45)
+        ..moveTo(cx, by)
+        ..quadraticBezierTo(cx - .05 * c, by - sz * .5, cx - sz * .35, by - sz * .32);
+      cv.drawPath(p, _stroke(const Color(0xFF7A5C3A), 2, cap: StrokeCap.round));
+      final Paint d = _fill(const Color(0xFF8A6A44));
+      _circ(cx + sz * .4, by - sz * .45, sz * .07, d);
+      _circ(cx - sz * .35, by - sz * .32, sz * .07, d);
+      return;
+    }
+    final Color col = mixc(cr.color, const Color(0xFFB8A040), clampD((100 - s.hp) / 80, 0, 1));
+    final Color dark = mi
