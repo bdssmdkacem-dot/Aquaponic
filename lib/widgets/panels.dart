@@ -4,6 +4,7 @@ import '../game/constants.dart';
 import '../game/controller.dart';
 import '../game/models.dart';
 import '../game/sim.dart';
+import '../game/util.dart';
 import '../theme.dart';
 import 'common.dart';
 
@@ -214,9 +215,9 @@ class _TankPanel extends StatelessWidget {
             final bool allowed = !has || tank.sp == e.key;
             final int cost = f.price * 4;
             return ItemCard(
-              title: '${f.ico} ${f.name}',
+              title: '${e.key == 'tilapia' ? '🐟' : e.key == 'carp' ? '🐠' : '🐡'} ${f.name}',
               small: '4 صغار · ${cost}💰',
-              desc: f.desc,
+              desc: 'سمك للاستزراع المائي — راقب الأكسجين والجوع والنظافة.',
               onTap: allowed && s.coins >= cost ? () => ctl.fry(tank, e.key) : null,
             );
           }).toList(),
@@ -407,7 +408,6 @@ class _BuildPanel extends StatelessWidget {
     final Sim s = ctl.sim;
     final ObjType? armed = ctl.armed;
     final int expandIdx = (s.rows - kMinRows) ~/ 2;
-    final int? expandCost = expandIdx < kExpand.length ? kExpand[expandIdx] : null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -433,7 +433,6 @@ class _BuildPanel extends StatelessWidget {
             }
             return NoteText('اختر مكاناً في الدفيئة لوضع ${tp.name}.');
           }),
-        ],
         ] else
           Padding(
             padding: const EdgeInsets.only(bottom: 8),
