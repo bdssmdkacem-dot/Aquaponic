@@ -455,4 +455,74 @@ class ScenePainter {
       }
     } else {
       for (final double a in const <double>[-.95, 0, .95]) {
-        _oval(cx + math.sin(a) * sz * .32, by - sz *
+        _oval(cx + math.sin(a) * sz * .32, by - sz *.24, sz * .2, sz * .14, a * .5, _fill(a == 0 ? col : dark));
+      }
+      if (g > .5) {
+        final Paint bp = _fill(g >= .95 ? const Color(0xFFE63A55) : const Color(0xFFF2B8C0));
+        _circ(cx - sz * .3, by - sz * .08, sz * .11, bp);
+        _circ(cx + sz * .32, by - sz * .1, sz * .11, bp);
+      } else if (g > .25) {
+        final Paint fl = _fill(Colors.white);
+        _circ(cx - sz * .3, by - sz * .1, sz * .06, fl);
+        _circ(cx + sz * .32, by - sz * .12, sz * .06, fl);
+      }
+    }
+    final double pulse = math.sin(tm * 5);
+    if (s.g >= 1) _emoji('✨', cx + .26 * c, by - sz - .02 * c, .3 * c, .75 + .25 * pulse);
+    if (s.water < 30 && pulse > -.4) {
+      _emoji('💧', cx - .28 * c, by - .62 * c, .28 * c);
+    } else if (s.nut < 15) {
+      _emoji('🍂', cx + .28 * c, by - .55 * c, .26 * c);
+    }
+  }
+
+  // ------------------------------------------------------------- devices
+
+  void _shadow(double X, double Y) {
+    cv.drawRect(Rect.fromLTWH(X + .1 * c, Y + .9 * c, .8 * c, .06 * c), _fill(rgba(0, 0, 0, .15)));
+  }
+
+  void _pump(Pump o) {
+    final double X = o.x * c, Y = o.y * c;
+    final Net? n = o.net;
+    final bool run = !o.broken && n != null && n.cap > 0;
+    _shadow(X, Y);
+    final Color body = o.broken ? const Color(0xFFC94B4B) : (run ? const Color(0xFF2B83BF) : const Color(0xFF6D8796));
+    cv.drawRRect(_rr(X + .12 * c, Y + .25 * c, .76 * c, .65 * c, 6), _fill(body));
+    cv.drawRRect(_rr(X + .12 * c, Y + .25 * c, .76 * c, .2 * c, 6), _fill(rgba(255, 255, 255, .25)));
+    cv.save();
+    cv.translate(X + .5 * c, Y + .62 * c);
+    cv.rotate(run ? tm * 7 : 0.0);
+    final Path blades = Path();
+    for (int i = 0; i < 3; i++) {
+      final double a = i * 2.094;
+      blades
+        ..moveTo(0, 0)
+        ..lineTo(math.cos(a) * .2 * c, math.sin(a) * .2 * c);
+    }
+    cv.drawPath(blades, _stroke(Colors.white, 2));
+    cv.restore();
+    cv.drawRect(Rect.fromLTWH(X + .4 * c, Y + .12 * c, .2 * c, .16 * c), _fill(const Color(0xFF254E6A)));
+    if (o.broken) _emoji('🔧', X + .5 * c, Y + .12 * c, .4 * c);
+  }
+
+  void _air(Air o) {
+    final double X = o.x * c, Y = o.y * c;
+    _shadow(X, Y);
+    final RRect box = _rr(X + .14 * c, Y + .3 * c, .72 * c, .6 * c, 6);
+    cv.drawRRect(box, _fill(const Color(0xFFEEF2F4)));
+    cv.drawRRect(box, _stroke(const Color(0xFF9FB0BA), 1.5));
+    final Paint blue = _fill(const Color(0xFF4FB3E8));
+    _circ(X + .36 * c, Y + .6 * c, .09 * c, blue);
+    cv.drawRect(Rect.fromLTWH(X + .55 * c, Y + .52 * c, .18 * c, .05 * c), blue);
+    cv.drawRect(Rect.fromLTWH(X + .55 * c, Y + .64 * c, .18 * c, .05 * c), blue);
+    if (o.tank != null) {
+      final Paint bub = _stroke(rgba(255, 255, 255, .9), 1.2);
+      for (int k = 0; k < 3; k++) {
+        final double ph = (tm * .6 + k / 3) % 1;
+        cv.drawCircle(Offset(X + .5 * c + math.sin(ph * 9 + k) * .06 * c, Y + .28 * c - ph * .28 * c), .035 * c, bub);
+      }
+    } else {
+      _emoji('⚠️', X + .5 * c, Y + .14 * c, .32 * c);
+    }
+  }
