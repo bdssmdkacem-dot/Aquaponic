@@ -298,3 +298,68 @@ class Sim {
     }
     floaters.removeWhere((Floater f) => f.age >= 1.4);
   }
+
+  // ------------------------------------------------------------ simulation
+
+  void stepSim(double dt) {
+    t += dt;
+    refreshNets();
+    for (final GameObj o in objs) {
+      if (o is Tank) {
+        stepTank(o, dt);
+      } else if (o is Pump) {
+        stepPump(o, dt);
+      } else if (o is Feeder) {
+        stepFeeder(o, dt);
+      }
+    }
+    for (final Net n in nets) {
+      stepNet(n, dt);
+    }
+    final bool alive = objs.any((GameObj o) =>
+        (o is Tank && o.n > 0) ||
+        (o is Bed && o.slots.any((Slot s) => s.alive)));
+    if ((coins < 15 && !alive) || (coins < 12 && food <= 0)) {
+      poor += dt;
+      if (poor > 20) {
+        coins += 80;
+        poor = 0;
+        toast('🎁 منحة دعم للمزارعين: +80💰', 'good');
+      }
+    } else {
+      poor = 0;
+    }
+  }
+
+  void stepTank(Tank o, double dt) {
+    final FishSpecies? sp = o.species;
+    final int n = o.n;
+    final int air = math.min(o.air, 3);
+    final double d =
+        (n > 0 && sp != null) ? n * (0.025 + 0.03 * o.size) * sp.o2 : 0.0;
+    o.o2 = clampD(o.o2 + ((0.5 + air * 1.6) * (1 - o.o2 / 100) - d) * dt, 0, 100);
+    if (n <= 0 || sp == null) {
+      o.waste = math.max(2.0, o.waste - 0.02 * dt);
+      o.bad = null;
+      return;
+    }
+    o.hunger = math.min(100.0, o.hunger + sp.hunger * dt);
+    o.waste = clampD(
+        o.waste + n * (0.015 + 0.02 * o.size) * sp.waste * dt, 2, 100);
+    double dmg = 0;
+    if (o.o2 < sp.o2Min) dmg += (sp.o2Min - o.o2) * 0.05;
+    if (o.waste > 55) dmg += (o.waste - 55) * 0.04;
+    if (o.hunger > 70) dmg += (o.hunger - 70) * 0.04;
+    if (dmg > 0) {
+      o.health -= dmg * dt;
+    } else {
+      o.health = math.min(100.0, o.health + 0.4 * dt);
+    }
+    if (o.health <= 0) {
+      final int k = math.max(1, (o.n * 0.25).ceil());
+      o.n = math.max(0, o.n - k);
+      statLost += k;
+      o.health = o.n > 0 ? 40 : 100;
+      if (o.n == 0) o.size = 0;
+      toast('💀 نفقت $k من الأسماك في ${tankName(o)}', 'bad');
+    }
