@@ -529,3 +529,35 @@ class AquaController extends ChangeNotifier {
     _ptr = null;
     hover = null;
   }
+
+  static List<Pt> _line(int x0, int y0, int x1, int y1) {
+    final List<Pt> r = <Pt>[];
+    final int dx = (x1 - x0).abs();
+    final int dy = -(y1 - y0).abs();
+    final int sx = x0 < x1 ? 1 : -1;
+    final int sy = y0 < y1 ? 1 : -1;
+    int err = dx + dy;
+    int x = x0;
+    int y = y0;
+    while (true) {
+      r.add(Pt(x, y));
+      if (x == x1 && y == y1) break;
+      final int e2 = 2 * err;
+      if (e2 >= dy) {
+        err += dy;
+        x += sx;
+      }
+      if (e2 <= dx) {
+        err += dx;
+        y += sy;
+      }
+    }
+    return r;
+  }
+
+  @override
+  void dispose() {
+    _toastTimer?.cancel();
+    super.dispose();
+  }
+}
