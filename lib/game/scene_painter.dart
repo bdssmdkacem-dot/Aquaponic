@@ -100,3 +100,61 @@ class ScenePainter {
       }
     }
   }
+
+  // --------------------------------------------------------------- paint
+
+  void paint(Canvas canvas, Size size, double time) {
+    cv = canvas;
+    tm = time;
+    c = size.width / kCols;
+    final double w = kCols * c;
+    final double h = sim.rows * c;
+    cv.save();
+    cv.clipRect(Rect.fromLTWH(0, 0, size.width, size.height));
+    final double hour = (7 + sim.t / kDaySec * 24) % 24;
+    final double dl = _background(w, h, hour);
+    if (ctl.tool != AquaTool.select) _grid(w, h);
+    for (final GameObj o in sim.objs) {
+      if (o is Tank) {
+        _tank(o);
+      } else if (o is Bed) {
+        if (o.type == ObjType.bed) {
+          _bed(o);
+        } else {
+          _tower(o);
+        }
+      } else if (o is Pump) {
+        _pump(o);
+      } else if (o is Air) {
+        _air(o);
+      } else if (o is Feeder) {
+        _feeder(o);
+      }
+    }
+    _pipes();
+    final Paint food = _fill(const Color(0xFFB5834A));
+    for (final FoodPart p in sim.parts) {
+      _circ(p.x * c, p.y * c, .05 * c, food);
+    }
+    if (dl < 1) {
+      cv.drawRect(Rect.fromLTWH(0, 0, w, h), _fill(rgba(10, 20, 55, .3 * (1 - dl))));
+    }
+    _overlays();
+    cv.restore();
+  }
+
+  // ---------------------------------------------------------- background
+
+  double _background(double w, double h, double hour) {
+    final double sunH = math.sin((hour - 6) / 12 * math.pi);
+    final double dl = clampD(sunH * 1.6 + .3, 0, 1);
+    cv.drawRect(
+        Rect.fromLTWH(0, 0, w, h),
+        Paint()
+          ..shader = ui.Gradient.linear(Offset.zero, Offset(0, h),
+              const <Color>[Color(0xFFE6F3EA), Color(0xFFCBE4D5)]));
+    final Paint boards = _stroke(rgba(60, 110, 90, .08), 1);
+    for (double x = c * 1.5; x < w; x += c * 1.5) {
+      cv.drawLine(Offset(x, c * 1.3), Offset(x, h), boards);
+    }
+    final double sh = c *
