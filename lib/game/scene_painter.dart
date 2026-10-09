@@ -172,7 +172,7 @@ class ScenePainter {
     final Paint p=Paint()..color=const Color(0x66888888);
     c.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(x,y,w,0.08),const Radius.circular(0.04)),p);
     p.color=color;
-    c.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(x,y,w*v.clamp(0.0,1.0),0.08),const Radius.circular(0.04)),p);
+    c.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(x,y,w*v.clamp(0.0,1.0).toDouble(),0.08),const Radius.circular(0.04)),p);
   }
 
   void _label(Canvas c,double x,double y,String text,double size) {
