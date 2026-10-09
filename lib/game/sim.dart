@@ -97,7 +97,7 @@ class Sim {
       for(final int a in component) {
         if(a>=100000) {
           final int id=a-100000;
-          final GameObj? o=objs.where((GameObj e)=>e.id==id).firstOrNull;
+          GameObj? o; for (final GameObj e in objs) { if (e.id == id) { o = e; break; } }
           if(o is Tank) n.tanks.add(o);
           if(o is Pump) n.pumps.add(o);
           if(o is Bed) n.beds.add(o);
