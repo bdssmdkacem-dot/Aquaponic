@@ -157,4 +157,45 @@ class ScenePainter {
     for (double x = c * 1.5; x < w; x += c * 1.5) {
       cv.drawLine(Offset(x, c * 1.3), Offset(x, h), boards);
     }
-    final double sh = c *
+    final double sh = c * 1.3;
+    cv.drawRect(
+        Rect.fromLTWH(0, 0, w, sh),
+        Paint()
+          ..shader = ui.Gradient.linear(Offset.zero, Offset(0, sh), <Color>[
+            mixc(const Color(0xFF111D40), const Color(0xFF63BDF0), dl),
+            mixc(const Color(0xFF2B407A), const Color(0xFFD3F0FF), dl),
+          ]));
+    final bool day = hour >= 6 && hour < 18;
+    final double t = day ? (hour - 6) / 12 : ((hour - 18 + 24) % 24) / 12;
+    final double px = w * (.08 + .84 * t);
+    final double py = sh * .9 - math.sin(t * math.pi) * sh * .62;
+    if (day) {
+      _circ(px, py, .36 * c, _fill(rgba(255, 224, 110, .35)));
+      _circ(px, py, .2 * c, _fill(const Color(0xFFFFD95A)));
+    } else {
+      final Paint star = _fill(rgba(255, 255, 255, .7));
+      for (int i = 0; i < 9; i++) {
+        _circ(w * hash(i * 4.1), sh * .75 * hash(i * 9.7 + 1), .018 * c + hash(i.toDouble()) * .014 * c, star);
+      }
+      _circ(px, py, .17 * c, _fill(const Color(0xFFF3F5FF)));
+    }
+    final Paint cloud = _fill(rgba(255, 255, 255, .3 + .5 * dl));
+    for (int k = 0; k < 2; k++) {
+      final double cx = ((tm * 4 + k * w * .55) % (w + c * 2)) - c;
+      cv.drawOval(Rect.fromCenter(center: Offset(cx, c * .55), width: c, height: c * .3), cloud);
+      cv.drawOval(Rect.fromCenter(center: Offset(cx + c * .34, c * .44), width: c * .68, height: c * .3), cloud);
+    }
+    final Paint frame = _stroke(rgba(255, 255, 255, .9), 3);
+    cv.drawRect(Rect.fromLTWH(1.5, 1.5, w - 3, sh - 3), frame);
+    for (double x = c * 3; x < w; x += c * 3) {
+      cv.drawLine(Offset(x, 0), Offset(x, sh), frame);
+    }
+    cv.drawRect(Rect.fromLTWH(0, sh - 1, w, 2), _fill(rgba(90, 120, 110, .35)));
+    cv.drawRect(Rect.fromLTWH(0, h - .2 * c, w, .2 * c), _fill(const Color(0xFFA88F6C)));
+    cv.drawRect(Rect.fromLTWH(0, h - .2 * c, w, 2), _fill(const Color(0xFF8B7355)));
+    return dl;
+  }
+
+  void _grid(double w, double h) {
+    final Paint p = _stroke(rgba(20, 70, 55, .14), 1);
+    for (int i = 1; i < kCols; i++) {
