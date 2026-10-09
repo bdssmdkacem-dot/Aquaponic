@@ -582,3 +582,29 @@ class Sim {
     addFloater(p.x + 0.5, p.y + 0.3, '+${c.sell}', const Color(0xFFFFE27A));
     s.clear();
   }
+
+  bool canPlace(ObjType k, int x, int y) {
+    final TypeInfo tp = kTypes[k]!;
+    if (x < 0 || y < 0 || x + tp.w > kCols || y + tp.h > rows) return false;
+    for (int j = 0; j < tp.h; j++) {
+      for (int i = 0; i < tp.w; i++) {
+        if (grid[y + j][x + i] != null) return false;
+        if (isPipe(x + i, y + j)) return false;
+      }
+    }
+    return true;
+  }
+
+  GameObj? placeObj(ObjType k, int x, int y) {
+    if (!canPlace(k, x, y)) {
+      toast('❌ المكان غير صالح — الخلايا مشغولة', 'warn');
+      return null;
+    }
+    final int cost = kTypes[k]!.cost;
+    if (coins < cost) {
+      toast('💰 النقود لا تكفي', 'warn');
+      return null;
+    }
+    coins -= cost;
+    return addObj(k, x, y);
+  }
