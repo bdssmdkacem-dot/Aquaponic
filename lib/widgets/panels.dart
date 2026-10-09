@@ -494,3 +494,70 @@ class _PipePanel extends StatelessWidget {
   }
 }
 
+class _PlantPanel extends StatelessWidget {
+  final AquaController ctl;
+  const _PlantPanel({required this.ctl});
+
+  @override
+  Widget build(BuildContext context) {
+    final AquaColors ac = context.aqua;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Text('اختر المحصول ثم المس (أو اسحب على) الخانات الفارغة في أحواض الزراعة.',
+              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: ac.ink)),
+        ),
+        TwoColGrid(
+          children: kCrops.entries.map((MapEntry<String, CropInfo> e) {
+            final CropInfo c = e.value;
+            return ItemCard(
+              title: '${c.ico} ${c.name}',
+              small: 'بذرة ${c.seed}💰 · بيع ${c.sell}💰',
+              desc: '${c.tower ? "أفقي + برج" : "أحواض أفقية فقط"} · نضج ~${c.growSec.round()}ث',
+              selected: ctl.crop == e.key,
+              onTap: () => ctl.setCrop(e.key),
+            );
+          }).toList(),
+        ),
+        const NoteText('المس النبات الناضج ✨ (في تبويب «معلومات») لحصاده.'),
+      ],
+    );
+  }
+}
+
+// --------------------------------------------------------------- store tab
+
+class _StorePanel extends StatelessWidget {
+  final AquaController ctl;
+  const _StorePanel({required this.ctl});
+
+  @override
+  Widget build(BuildContext context) {
+    final AquaColors ac = context.aqua;
+    final Sim s = ctl.sim;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text.rich(
+          TextSpan(style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: ac.ink), children: <InlineSpan>[
+            const TextSpan(text: '🍽️ طعام الأسماك: '),
+            TextSpan(text: '${s.food}'),
+            const TextSpan(text: ' وجبة'),
+          ]),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: AquaBtn('+6 وجبات · 15💰', kind: BtnKind.primary, onTap: s.coins >= 15 ? ctl.buyFood : null),
+        ),
+        const NoteText('كل 4 أسماك تحتاج وجبة عند كل إطعام. الإفراط في الإطعام يلوّث الماء.'),
+        const SubLabel('📊 الإحصاءات'),
+        NoteText(
+            '🌾 حصاد: ${s.statHarv} · 🐟 أسماك مباعة: ${s.statFish}\n💀 أسماك نافقة: ${s.statLost} · 🥀 نباتات ميتة: ${s.statPlost}'),
+        const SizedBox(height: 4),
+        AquaBtn('❓ كيف تلعب', onTap: ctl.openHelp),
+      ],
+    );
+  }
+}
