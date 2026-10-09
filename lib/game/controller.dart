@@ -408,3 +408,65 @@ class AquaController extends ChangeNotifier {
     if (h != null) return anchor(h.x, h.y, k);
     return pending;
   }
+
+  // ---------------------------------------------------------- selection
+
+  void tapSelect(int gx, int gy) {
+    delArm = null;
+    if (!sim.inb(gx, gy)) {
+      sel = null;
+      setTab(AquaTab.info);
+      return;
+    }
+    final GameObj? o = sim.grid[gy][gx];
+    if (o == null) {
+      if (sim.isPipe(gx, gy)) {
+        sel = Selection.pipe(sim.pk(gx, gy));
+      } else {
+        sel = null;
+      }
+      setTab(AquaTab.info);
+      return;
+    }
+    if (o is Bed) {
+      final int i = sim.slotAt(o, gx, gy);
+      if (i >= 0) {
+        final Slot s = o.slots[i];
+        if (s.has) {
+          if (s.dead) {
+            s.clear();
+            showToast('🧹 نُظّفت الخانة', 'info');
+          } else if (s.g >= 1) {
+            sim.harvestSlot(o, i);
+          }
+        }
+        sel = Selection.obj(o.id, i);
+        setTab(AquaTab.info);
+        return;
+      }
+    }
+    if (o is Pump && o.broken) {
+      o.broken = false;
+      sim.refreshNets();
+      showToast('🔧 تم تنظيف المضخة', 'good');
+    }
+    sel = Selection.obj(o.id);
+    setTab(AquaTab.info);
+  }
+
+  // -------------------------------------------------------------- input
+  // Coordinates are in "cell units" (pixels / cell size, fractional).
+
+  void pointerDown(double cx, double cy, bool touch) {
+    final int gx = cx.floor();
+    final int gy = cy.floor();
+    _ptr = _Ptr(cx, cy, gx, gy, touch);
+    hover = Pt(gx, gy);
+    final AquaTool tl = tool;
+    if (tl == AquaTool.pipe) {
+      sim.paintPipe(gx, gy, pipeMode == PipeMode.erase);
+    } else if (tl == AquaTool.plant) {
+      sim.plantAt(gx, gy, crop);
+    }
+    notifyListeners();
+  }
