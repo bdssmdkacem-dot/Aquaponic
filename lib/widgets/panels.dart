@@ -226,3 +226,5 @@ class _TankPanel extends StatelessWidget {
   }
 }
 
+
+// Bed panel restoration continues in the following source chunks.
