@@ -61,3 +61,4 @@ class _LoaderState extends State<_Loader> {
       },
     );
   }
+}
