@@ -414,4 +414,45 @@ class ScenePainter {
       return;
     }
     final Color col = mixc(cr.color, const Color(0xFFB8A040), clampD((100 - s.hp) / 80, 0, 1));
-    final Color dark = mi
+    final Color dark = mixc(col, const Color(0xFF0D2A18), .28);
+    if (s.crop == 'lettuce') {
+      for (final double a in const <double>[-1.15, -.6, .6, 1.15]) {
+        _oval(cx + math.sin(a) * sz * .34, by - math.cos(a) * sz * .3 - sz * .06, sz * .2, sz * .34, a, _fill(dark));
+      }
+      _oval(cx, by - sz * .34, sz * .26, sz * .34, 0, _fill(col));
+      _oval(cx, by - sz * .36, sz * .13, sz * .22, 0, _fill(mixc(col, Colors.white, .28)));
+    } else if (s.crop == 'mint') {
+      final Paint stem = _stroke(dark, math.max(1.5, sz * .05), cap: StrokeCap.round);
+      for (int k = 0; k < 5; k++) {
+        final double a = (k - 2) * .38;
+        final double tx = cx + math.sin(a) * sz * .75;
+        final double ty = by - math.cos(a) * sz * .95;
+        cv.drawLine(Offset(cx, by), Offset(tx, ty), stem);
+        for (final double t in const <double>[.45, .75, 1.0]) {
+          _circ(cx + (tx - cx) * t, by + (ty - by) * t, sz * (.1 + .03 * t), _fill(col));
+        }
+      }
+    } else if (s.crop == 'tomato') {
+      cv.drawLine(Offset(cx, by), Offset(cx, by - sz * .95),
+          _stroke(const Color(0xFF4D7A3A), math.max(2.0, sz * .07), cap: StrokeCap.round));
+      const List<List<double>> leaves = <List<double>>[
+        <double>[-.22, .35, -.9],
+        <double>[.22, .5, .9],
+        <double>[-.2, .72, -.7],
+        <double>[.2, .85, .7],
+      ];
+      for (final List<double> l in leaves) {
+        _oval(cx + l[0] * sz, by - l[1] * sz, sz * .13, sz * .22, l[2], _fill(col));
+      }
+      if (g > .5) {
+        final Color fc = g >= .95
+            ? const Color(0xFFE2483D)
+            : (g > .78 ? const Color(0xFFEAA23C) : const Color(0xFF8CCF6A));
+        final Paint fp = _fill(fc);
+        _circ(cx - .2 * sz, by - .3 * sz, sz * .12, fp);
+        _circ(cx + .22 * sz, by - .42 * sz, sz * .12, fp);
+        _circ(cx + .02 * sz, by - .18 * sz, sz * .12, fp);
+      }
+    } else {
+      for (final double a in const <double>[-.95, 0, .95]) {
+        _oval(cx + math.sin(a) * sz * .32, by - sz *
