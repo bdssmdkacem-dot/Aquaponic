@@ -724,3 +724,44 @@ class Sim {
         'pipes': pipes.toList(),
         'objs': objs.map((GameObj o) => o.toJson()).toList(),
       };
+
+  static Sim? fromJson(Map<String, dynamic> j) {
+    if (j['v'] != 1) return null;
+    final dynamic rawObjs = j['objs'];
+    if (rawObjs is! List) return null;
+    final Sim s = Sim();
+    s.t = (j['t'] as num?)?.toDouble() ?? 0;
+    s.coins = (j['coins'] as num?)?.toInt() ?? 600;
+    s.food = (j['food'] as num?)?.toInt() ?? 0;
+    s.rows = clampI((j['rows'] as num?)?.toInt() ?? kMinRows, kMinRows, kMinRows + 6);
+    s.missionStep = (j['step'] as num?)?.toInt() ?? 0;
+    final int sp = (j['speed'] as num?)?.toInt() ?? 1;
+    s.speed = (sp == 0 || sp == 1 || sp == 2 || sp == 4) ? sp : 1;
+    final dynamic st = j['stats'];
+    if (st is List && st.length >= 4) {
+      s.statHarv = (st[0] as num).toInt();
+      s.statFish = (st[1] as num).toInt();
+      s.statLost = (st[2] as num).toInt();
+      s.statPlost = (st[3] as num).toInt();
+    }
+    int maxId = 0;
+    for (final dynamic e in rawObjs) {
+      if (e is Map<String, dynamic>) {
+        final GameObj? o = objFromJson(e);
+        if (o != null) {
+          s.objs.add(o);
+          if (o.id > maxId) maxId = o.id;
+        }
+      }
+    }
+    s.nid = math.max((j['nid'] as num?)?.toInt() ?? 1, maxId + 1);
+    final dynamic rawPipes = j['pipes'];
+    if (rawPipes is List) {
+      for (final dynamic k in rawPipes) {
+        if (k is num) s.pipes.add(k.toInt());
+      }
+    }
+    s.rebuild();
+    return s;
+  }
+}
