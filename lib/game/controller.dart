@@ -325,3 +325,86 @@ class AquaController extends ChangeNotifier {
     sim.buyFry(t, k);
     notifyListeners();
   }
+
+  void harvestAll(Bed b) {
+    int n = 0;
+    for (int i = 0; i < b.slots.length; i++) {
+      final Slot s = b.slots[i];
+      if (s.alive && s.g >= 1) {
+        sim.harvestSlot(b, i);
+        n++;
+      }
+    }
+    if (n == 0) showToast('لا يوجد محصول ناضج بعد', 'warn');
+    notifyListeners();
+  }
+
+  void cleanDead(Bed b) {
+    int n = 0;
+    for (final Slot s in b.slots) {
+      if (s.dead) {
+        s.clear();
+        n++;
+      }
+    }
+    if (n > 0) showToast('🧹 تم تنظيف $n خانة', 'info');
+    notifyListeners();
+  }
+
+  void fixPump(Pump p) {
+    if (p.broken) {
+      p.broken = false;
+      sim.refreshNets();
+      showToast('🔧 تم تنظيف المضخة', 'good');
+    }
+    notifyListeners();
+  }
+
+  /// Two-step delete: first press arms, second confirms.
+  void deletePressed(GameObj o) {
+    if (delArm == o.id) {
+      delArm = null;
+      sel = null;
+      sim.removeObj(o);
+      tab = AquaTab.info;
+      notifyListeners();
+      return;
+    }
+    final int id = o.id;
+    delArm = id;
+    Timer(const Duration(milliseconds: 3500), () {
+      if (delArm == id) {
+        delArm = null;
+        notifyListeners();
+      }
+    });
+    notifyListeners();
+  }
+
+  void expand() {
+    sim.expand();
+    pending = null;
+    notifyListeners();
+  }
+
+  void buyFood() {
+    sim.buyFood();
+    notifyListeners();
+  }
+
+  // ------------------------------------------------------------- ghost
+
+  Pt anchor(int gx, int gy, ObjType k) {
+    final TypeInfo tp = kTypes[k]!;
+    final int x = clampI(gx - (tp.w - 1) ~/ 2, 0, kCols - tp.w);
+    final int y = clampI(gy - (tp.h - 1) ~/ 2, 0, sim.rows - tp.h);
+    return Pt(x, y);
+  }
+
+  Pt? ghostPos() {
+    final ObjType? k = armed;
+    if (k == null) return null;
+    final Pt? h = hover;
+    if (h != null) return anchor(h.x, h.y, k);
+    return pending;
+  }
