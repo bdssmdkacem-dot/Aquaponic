@@ -10,8 +10,9 @@ class AquaColors extends ThemeExtension<AquaColors> {
   final Color line;
   final Color accent;
   final Color onAccent;
-  final Color good;
   final Color danger;
+  final Color warn;
+  final Color good;
 
   const AquaColors({
     required this.bg,
@@ -22,34 +23,37 @@ class AquaColors extends ThemeExtension<AquaColors> {
     required this.line,
     required this.accent,
     required this.onAccent,
-    required this.good,
     required this.danger,
+    required this.warn,
+    required this.good,
   });
 
   static const AquaColors light = AquaColors(
     bg: Color(0xFFE9F3EE),
-    surface: Colors.white,
-    surface2: Color(0xFFF1F7F3),
+    surface: Color(0xFFFFFFFF),
+    surface2: Color(0xFFE2EEE8),
     ink: Color(0xFF0F2D28),
-    muted: Color(0xFF607A72),
-    line: Color(0xFFD5E5DC),
+    muted: Color(0xFF557068),
+    line: Color(0xFFC9DDD3),
     accent: Color(0xFF0B8A75),
-    onAccent: Colors.white,
-    good: Color(0xFF218653),
-    danger: Color(0xFFBD3C42),
+    onAccent: Color(0xFFFFFFFF),
+    danger: Color(0xFFD63A41),
+    warn: Color(0xFFC98100),
+    good: Color(0xFF278F4A),
   );
 
   static const AquaColors dark = AquaColors(
     bg: Color(0xFF0C1917),
     surface: Color(0xFF14272A),
-    surface2: Color(0xFF1B3435),
+    surface2: Color(0xFF1C3538),
     ink: Color(0xFFE3F3EE),
-    muted: Color(0xFF9CB8AE),
-    line: Color(0xFF31514C),
+    muted: Color(0xFF93B5AB),
+    line: Color(0xFF2A4B49),
     accent: Color(0xFF2EC4A6),
-    onAccent: Color(0xFF08211D),
-    good: Color(0xFF67D69A),
-    danger: Color(0xFFFF777C),
+    onAccent: Color(0xFF04221C),
+    danger: Color(0xFFFF6F74),
+    warn: Color(0xFFF2B23C),
+    good: Color(0xFF5DD688),
   );
 
   @override
@@ -62,20 +66,24 @@ class AquaColors extends ThemeExtension<AquaColors> {
     Color? line,
     Color? accent,
     Color? onAccent,
-    Color? good,
     Color? danger,
-  }) => AquaColors(
-    bg: bg ?? this.bg,
-    surface: surface ?? this.surface,
-    surface2: surface2 ?? this.surface2,
-    ink: ink ?? this.ink,
-    muted: muted ?? this.muted,
-    line: line ?? this.line,
-    accent: accent ?? this.accent,
-    onAccent: onAccent ?? this.onAccent,
-    good: good ?? this.good,
-    danger: danger ?? this.danger,
-  );
+    Color? warn,
+    Color? good,
+  }) {
+    return AquaColors(
+      bg: bg ?? this.bg,
+      surface: surface ?? this.surface,
+      surface2: surface2 ?? this.surface2,
+      ink: ink ?? this.ink,
+      muted: muted ?? this.muted,
+      line: line ?? this.line,
+      accent: accent ?? this.accent,
+      onAccent: onAccent ?? this.onAccent,
+      danger: danger ?? this.danger,
+      warn: warn ?? this.warn,
+      good: good ?? this.good,
+    );
+  }
 
   @override
   AquaColors lerp(ThemeExtension<AquaColors>? other, double t) {
@@ -89,20 +97,28 @@ class AquaColors extends ThemeExtension<AquaColors> {
       line: Color.lerp(line, other.line, t)!,
       accent: Color.lerp(accent, other.accent, t)!,
       onAccent: Color.lerp(onAccent, other.onAccent, t)!,
-      good: Color.lerp(good, other.good, t)!,
       danger: Color.lerp(danger, other.danger, t)!,
+      warn: Color.lerp(warn, other.warn, t)!,
+      good: Color.lerp(good, other.good, t)!,
     );
   }
 }
 
 extension AquaColorsX on BuildContext {
-  AquaColors get aqua =>
-      Theme.of(this).extension<AquaColors>() ?? AquaColors.light;
+  AquaColors get aqua => Theme.of(this).extension<AquaColors>() ?? AquaColors.light;
 }
 
-ThemeData buildAquaTheme(AquaColors c) => ThemeData(
-      useMaterial3: true,
-      scaffoldBackgroundColor: c.bg,
-      colorScheme: ColorScheme.fromSeed(seedColor: c.accent),
-      extensions: <ThemeExtension<dynamic>>[c],
-    );
+ThemeData buildAquaTheme(AquaColors c) {
+  return ThemeData(
+    useMaterial3: true,
+    brightness: c == AquaColors.dark ? Brightness.dark : Brightness.light,
+    scaffoldBackgroundColor: c.bg,
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: c.accent,
+      brightness: c == AquaColors.dark ? Brightness.dark : Brightness.light,
+      primary: c.accent,
+      surface: c.surface,
+    ),
+    extensions: <ThemeExtension<dynamic>>[c],
+  );
+}
