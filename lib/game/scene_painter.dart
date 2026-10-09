@@ -285,4 +285,44 @@ class ScenePainter {
         final double ph = r3 * 6.28;
         final double xx = gx + gw / 2 + math.sin(tm * spd + ph) * amp * .9;
         final double dir = math.cos(tm * spd + ph) >= 0 ? 1.0 : -1.0;
-        double yy = top + (bot - top) * (.1 + .8 * r4) +
+        double yy = top + (bot - top) * (.1 + .8 * r4) + math.sin(tm * 1.3 + i) * .04 * c;
+        if (sick) yy = wl + .16 * c + r4 * .12 * c;
+        _fish(xx, yy, dir, s, sp, sick);
+      }
+    }
+    cv.restore();
+    cv.drawRRect(_rr(gx, gy, gw, gh, 7), _stroke(rgba(255, 255, 255, .92), 3));
+    cv.drawRRect(_rr(gx - 1.5, gy - 1.5, gw + 3, gh + 3, 8), _stroke(rgba(50, 105, 115, .6), 1));
+    if (sp != null && o.n > 0) {
+      final TankBad? b = o.bad;
+      final double gxx = gx + .12 * c, gyy = wl + .12 * c, gwid = .95 * c, gh2 = .075 * c;
+      final List<double> vals = <double>[o.o2, o.waste, o.hunger];
+      final List<Color> cols = <Color>[const Color(0xFF4CC3FF), const Color(0xFFD9A63F), const Color(0xFFF2A13A)];
+      final List<bool> bads = <bool>[b != null && b.o2, b != null && b.waste, b != null && b.hunger];
+      for (int i = 0; i < 3; i++) {
+        final double y = gyy + i * (gh2 + .03 * c);
+        cv.drawRRect(_rr(gxx, y, gwid, gh2, 2), _fill(rgba(0, 0, 0, .3)));
+        cv.drawRRect(_rr(gxx, y, math.max(2.0, gwid * clampD(vals[i], 0, 100) / 100), gh2, 2),
+            _fill(bads[i] ? const Color(0xFFFF4D55) : cols[i]));
+      }
+      final TextPainter tp = _tpFor('🐟 ${o.n}', .26 * c, Colors.white, FontWeight.w700);
+      final double tw = tp.width;
+      cv.drawRRect(_rr(gx + gw - tw - .34 * c, gy + gh - .46 * c, tw + .24 * c, .3 * c, 6), _fill(rgba(0, 0, 0, .4)));
+      tp.paint(cv, Offset(gx + gw - tw - .22 * c, gy + gh - .31 * c - tp.height / 2));
+      if (b != null && b.any && math.sin(tm * 6) > -.3) {
+        _emoji('⚠️', gx + gw - .34 * c, gy + .44 * c, .36 * c);
+      }
+    }
+  }
+
+  // ---------------------------------------------------------- beds/tower
+
+  void _waterWindow(double x, double y, double w, double h, bool flow) {
+    cv.save();
+    cv.clipRRect(_rr(x, y, w, h, 4));
+    if (flow) {
+      cv.drawRect(
+          Rect.fromLTWH(x, y, w, h),
+          Paint()
+            ..shader = ui.Gradient.linear(Offset(0, y), Offset(0, y + h),
+                const <Color>[Color(0xFF8FD5F7), Color(
