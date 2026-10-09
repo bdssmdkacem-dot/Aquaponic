@@ -448,3 +448,68 @@ class Sim {
         if (s.water < 30) thirsty = true;
         if (s.nut < 15) starve = true;
       }
+
+      b.thirsty = thirsty;
+      b.starve = starve;
+      if (thirsty) {
+        warnT('t${b.id}', '💧 نباتات عطشى في ${kTypes[b.type]!.name} — تحقق من الأنابيب والمضخة', 'warn');
+      } else if (starve) {
+        warnT('s${b.id}', '🍂 نباتات جائعة — تحتاج فضلات أسماك أكثر', 'warn');
+      }
+    }
+  }
+
+  void updateSlot(Slot s, double ratio, double sup, double dt) {
+    final CropInfo c = kCrops[s.crop]!;
+    s.water = clampD(s.water + (ratio * 3 - 1) * dt, 0, 100);
+    s.nut += (100 * sup * (0.4 + 0.6 * ratio) - s.nut) * math.min(1.0, 0.1 * dt);
+    double dmg = 0;
+    if (s.water < 12) dmg += (12 - s.water) * 0.09;
+    if (s.nut < 8) dmg += (8 - s.nut) * 0.03;
+    if (dmg > 0) {
+      s.hp -= dmg * dt;
+    } else {
+      s.hp = math.min(100.0, s.hp + 0.5 * dt);
+    }
+    if (s.hp <= 0) {
+      s.dead = true;
+      statPlost++;
+      toast('🥀 مات نبات ${c.name}', 'bad');
+      return;
+    }
+    if (s.g < 1 && s.hp > 25 && s.water > 15) {
+      s.g = math.min(1.0, s.g + dt / c.growSec * (0.25 + 0.75 * s.nut / 100));
+    }
+    if (s.g >= 1 && !s.rdy) {
+      s.rdy = true;
+      toast('🌾 محصول جاهز للحصاد: ${c.name}', 'good');
+    }
+  }
+
+  // --------------------------------------------------------------- actions
+
+  bool feedTank(Tank o, {bool auto = false}) {
+    if (o.sp == null || o.n <= 0) {
+      if (!auto) toast('الحوض فارغ من الأسماك', 'warn');
+      return false;
+    }
+    if (food <= 0) {
+      if (auto) {
+        warnT('nofood', '🍽️ نفد طعام الأسماك! اشترِ من «المخزن»', 'bad', 30);
+      } else {
+        toast('🍽️ لا يوجد طعام — اشترِ من «المخزن»', 'warn');
+      }
+      return false;
+    }
+    final int need = math.max(1, (o.n / 4).ceil());
+    final int use = math.min(need, food);
+    final bool over = o.hunger < 15;
+    o.hunger = math.max(0.0, o.hunger - 42.0 * use / need);
+    o.waste = math.min(100.0, o.waste + (over ? 5.0 : 0.8) * use);
+    food -= use;
+    spawnFood(o);
+    if (over && !auto) {
+      toast('⚠️ الأسماك شبعانة — الطعام الزائد يلوّث الماء', 'warn');
+    }
+    return true;
+  }
