@@ -155,3 +155,34 @@ class AquaController extends ChangeNotifier {
     });
     notifyListeners();
   }
+  // --------------------------------------------------------------- loop
+
+  void tick(double dt) {
+    final double d = dt > 0.25 ? 0.25 : dt;
+    if (!modalOpen && sim.speed > 0) {
+      _acc = math.min(2.0, _acc + d * sim.speed);
+      while (_acc >= kStep) {
+        sim.stepSim(kStep);
+        _acc -= kStep;
+      }
+    }
+    sim.updateFx(d);
+    _uiT += d;
+    if (_uiT > 0.15) {
+      _uiT = 0;
+      _updateMission();
+      notifyListeners();
+    }
+    _saveT += d;
+    if (_saveT > 8) {
+      _saveT = 0;
+      save();
+    }
+  }
+
+  void _updateMission() {
+    while (sim.missionStep < kMission.length - 1 &&
+        kMission[sim.missionStep].done(sim)) {
+      sim.missionStep++;
+    }
+  }
