@@ -242,3 +242,21 @@ class _BedPanel extends StatelessWidget {
     final Slot? one = (sel != null && sel.slot >= 0 && sel.slot < bed.slots.length)
         ? bed.slots[sel.slot]
         : null;
+    final List<Slot> list = (one != null && one.has)
+        ? <Slot>[one]
+        : bed.slots.where((Slot x) => x.has).toList();
+    final List<Slot> alive = list.where((Slot x) => !x.dead).toList();
+    double avg(double Function(Slot) f) =>
+        alive.isEmpty ? 0 : alive.map(f).reduce((double a, double b) => a + b) / alive.length;
+    final int ready = bed.slots.where((Slot x) => x.alive && x.g >= 1).length;
+    final int dead = bed.slots.where((Slot x) => x.dead).length;
+    final bool armedDel = ctl.delArm == bed.id;
+    final int refund = (kTypes[bed.type]!.cost * 0.6).round();
+
+    String sub;
+    if (one != null) {
+      final String name = one.has ? (kCrops[one.crop]!.name + (one.dead ? ' (ميتة)' : '')) : 'فارغة';
+      sub = 'خانة ${sel!.slot + 1}: $name';
+    } else {
+      sub = 'متوسط النباتات (${alive.length}/${bed.slots.length})';
+    }
