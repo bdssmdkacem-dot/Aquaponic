@@ -151,14 +151,14 @@ class _TankPanel extends StatelessWidget {
     final FishSpecies? sp = tank.species;
     final bool has = tank.n > 0 && sp != null;
     final int need = tank.n > 0 ? (tank.n / 4).ceil() : 0;
-    final int val = has ? (tank.n * sp!.sell * tank.size).round() : 0;
+    final int val = has ? (tank.n * sp.sell * tank.size).round() : 0;
     final bool armedDel = ctl.delArm == tank.id;
     final int refund = (kTypes[ObjType.tank]!.cost * 0.6).round();
 
     String tip;
     if (!has) {
       tip = 'اشترِ صغار السمك لبدء الإنتاج.';
-    } else if (tank.o2 < sp!.o2Min + 8) {
+    } else if (tank.o2 < sp.o2Min + 8) {
       tip = '⚠ الأكسجين منخفض — ضع مضخة أكسجين ملاصقة للحوض.';
     } else if (tank.waste > 50) {
       tip = '⚠ الفضلات عالية — وصّل الحوض بأحواض زراعة (مضخة + أنابيب).';
@@ -171,7 +171,7 @@ class _TankPanel extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        _header(context, s.tankName(tank), tag: has ? '${sp!.name} × ${tank.n}' : 'فارغ', tagOk: has),
+        _header(context, s.tankName(tank), tag: has ? '${sp.name} × ${tank.n}' : 'فارغ', tagOk: has),
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 8),
           child: Row(
@@ -194,7 +194,7 @@ class _TankPanel extends StatelessWidget {
             label: 'الأكسجين',
             value: tank.o2,
             color: const Color(0xFF3AA8E0),
-            bad: has && tank.o2 < sp!.o2Min + 8),
+            bad: has && tank.o2 < sp.o2Min + 8),
         StatBar(
             label: 'الفضلات (أمونيا)',
             value: tank.waste,
@@ -408,6 +408,7 @@ class _BuildPanel extends StatelessWidget {
     final Sim s = ctl.sim;
     final ObjType? armed = ctl.armed;
     final int expandIdx = (s.rows - kMinRows) ~/ 2;
+    final int? expandCost = expandIdx < kExpand.length ? kExpand[expandIdx] : null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
