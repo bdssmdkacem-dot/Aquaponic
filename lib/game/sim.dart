@@ -689,3 +689,38 @@ class Sim {
     food += 6;
     return true;
   }
+
+  /// Ready-made starter system (costs what it is worth).
+  void starter() {
+    final Tank tank = addObj(ObjType.tank, 0, 7) as Tank;
+    tank.sp = 'tilapia';
+    tank.n = 4;
+    tank.size = 0.05;
+    addObj(ObjType.air, 4, 9);
+    addObj(ObjType.pump, 4, 8);
+    pipes.add(pk(4, 7));
+    pipes.add(pk(4, 6));
+    pipes.add(pk(4, 5));
+    final Bed bed = addObj(ObjType.bed, 0, 4) as Bed;
+    for (int i = 0; i < 4; i++) {
+      bed.slots[i].plant('lettuce');
+    }
+    coins -= 120 + 30 + 45 + 70 + 6 + 32 + 16;
+    rebuild();
+  }
+
+  // ------------------------------------------------------------ persistence
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'v': 1,
+        't': t,
+        'coins': coins,
+        'food': food,
+        'rows': rows,
+        'nid': nid,
+        'step': missionStep,
+        'speed': speed,
+        'stats': <int>[statHarv, statFish, statLost, statPlost],
+        'pipes': pipes.toList(),
+        'objs': objs.map((GameObj o) => o.toJson()).toList(),
+      };
