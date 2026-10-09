@@ -202,3 +202,99 @@ class Sim {
         }
       }
     }
+
+    for (final int k in pipes) {
+      if (par.containsKey(k)) {
+        final Net n = netFor(k);
+        n.pipes++;
+        pipeNet[k] = n;
+      }
+    }
+
+    for (final GameObj o in objs) {
+      if (o is Tank) {
+        o.air = 0;
+        o.feeders = <Feeder>[];
+      }
+    }
+    for (final GameObj o in objs) {
+      if (o is Air || o is Feeder) {
+        Tank? found;
+        for (final List<int> d in kDirs) {
+          final GameObj? c = at(o.x + d[0], o.y + d[1]);
+          if (c is Tank) {
+            found = c;
+            break;
+          }
+        }
+        if (o is Air) {
+          o.tank = found;
+          if (found != null) found.air++;
+        } else if (o is Feeder) {
+          o.tank = found;
+          if (found != null) found.feeders.add(o);
+        }
+      }
+    }
+    refreshNets();
+  }
+
+  void refreshNets() {
+    for (final Net n in nets) {
+      n.active = n.pumps.where((Pump p) => !p.broken).length;
+      n.cap = n.tanks.isNotEmpty ? n.active * kPumpCap : 0;
+    }
+  }
+
+  NetStatus netStatus(Net? n) {
+    if (n == null || n.tanks.isEmpty) {
+      return const NetStatus(false, '✖ غير متصل بحوض سمك');
+    }
+    if (n.pumps.isEmpty) return const NetStatus(false, '✖ لا توجد مضخة ماء');
+    if (n.active == 0) return const NetStatus(false, '🔧 كل المضخات معطلة');
+    if (n.ratio < 0.7) return const NetStatus(true, '⚠ تدفق ضعيف — أضف مضخة');
+    return const NetStatus(true, '✔ الماء يصل');
+  }
+
+  // -------------------------------------------------------------- feedback
+
+  void toast(String msg, [String kind = 'info']) {
+    final ToastFn? f = onToast;
+    if (f != null) f(msg, kind);
+  }
+
+  void warnT(String key, String msg, String kind, [double gap = 45]) {
+    final double now = DateTime.now().millisecondsSinceEpoch / 1000.0;
+    if (now - (_warnAt[key] ?? -1e9) > gap) {
+      _warnAt[key] = now;
+      toast(msg, kind);
+    }
+  }
+
+  void addFloater(double x, double y, String txt, Color col) {
+    floaters.add(Floater(x, y, txt, col));
+  }
+
+  void spawnFood(Tank o) {
+    for (int i = 0; i < 10; i++) {
+      parts.add(FoodPart(
+        o.x + 0.4 + rng.nextDouble() * (o.w - 0.8),
+        o.y + 0.3 + rng.nextDouble() * 0.3,
+        0.5 + rng.nextDouble() * 0.6,
+        rng.nextDouble() * 6,
+        o.y + o.h - 0.4,
+      ));
+    }
+  }
+
+  void updateFx(double dt) {
+    for (final FoodPart p in parts) {
+      p.y += p.vy * dt;
+      p.x += math.sin(p.y * 9 + p.ph) * 0.15 * dt;
+    }
+    parts.removeWhere((FoodPart p) => p.y >= p.bot);
+    for (final Floater f in floaters) {
+      f.age += dt;
+    }
+    floaters.removeWhere((Floater f) => f.age >= 1.4);
+  }
