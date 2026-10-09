@@ -628,4 +628,61 @@ rokeCap.round));
         final Paint ring = _stroke(const Color(0xFFFFD23F), 2);
         sim.pipeNet.forEach((int k, Net v) {
           if (identical(v, n)) {
-            cv.drawCircle(Offset((k % kCols + .5) * c, (k ~/ kCols + .5) * c), .26 * c,
+            cv.drawCircle(Offset((k % kCols + .5) * c, (k ~/ kCols + .5) * c), .26 * c,ring);
+          }
+        });
+      }
+    }
+    final AquaTool tl = ctl.tool;
+    if (tl == AquaTool.plant) {
+      final CropInfo cr = kCrops[ctl.crop]!;
+      for (final GameObj o in sim.objs) {
+        if (o is! Bed) continue;
+        for (int i = 0; i < o.slots.length; i++) {
+          if (o.slots[i].alive) continue;
+          final Pt p = slotPos(o, i);
+          final bool ok = !(o.type == ObjType.tower && !cr.tower);
+          _emoji(ok ? cr.ico : '🚫', (p.x + .5) * c, (p.y + .55) * c, .42 * c, .55);
+        }
+      }
+    }
+    final Pt? hv = ctl.hover;
+    if (tl == AquaTool.pipe && hv != null && sim.inb(hv.x, hv.y)) {
+      cv.drawRect(Rect.fromLTWH(hv.x * c, hv.y * c, c, c),
+          _fill(ctl.pipeMode == PipeMode.erase ? rgba(255, 90, 95, .35) : rgba(70, 190, 240, .35)));
+    }
+    final Pt? gp = ctl.ghostPos();
+    final ObjType? armed = ctl.armed;
+    if (gp != null && armed != null) {
+      final TypeInfo tp = kTypes[armed]!;
+      final bool ok = sim.canPlace(armed, gp.x, gp.y);
+      final RRect r = _rr(gp.x * c, gp.y * c, tp.w * c, tp.h * c, 8);
+      cv.drawRRect(r, _fill(ok ? rgba(56, 214, 122, .55) : rgba(255, 90, 95, .55)));
+      cv.drawRRect(r, _stroke(ok ? const Color(0xFF127A3F) : const Color(0xFFA01D24), 2));
+      _emoji(tp.ico, (gp.x + tp.w / 2) * c, (gp.y + tp.h / 2) * c,
+          math.min(1.1 * c, math.min(tp.w, tp.h) * .5 * c + .2 * c));
+    }
+    for (final Floater f in sim.floaters) {
+      final double a = clampD(1 - f.age / 1.4, 0, 1);
+      final double y = (f.y - f.age * .6) * c;
+      final double x = f.x * c;
+      final TextPainter shadow = TextPainter(
+        text: TextSpan(
+            text: f.txt,
+            style: TextStyle(fontSize: .34 * c, fontWeight: FontWeight.w800, color: rgba(0, 0, 0, .55 * a))),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      final TextPainter main = TextPainter(
+        text: TextSpan(
+            text: f.txt,
+            style: TextStyle(
+                fontSize: .34 * c,
+                fontWeight: FontWeight.w800,
+                color: f.col.withAlpha(clampI((255 * a).round(), 0, 255)))),
+        textDirection: TextDirection.ltr,
+      )..layout();
+      shadow.paint(cv, Offset(x - shadow.width / 2 + 1.5, y - shadow.height / 2 + 1.5));
+      main.paint(cv, Offset(x - main.width / 2, y - main.height / 2));
+    }
+  }
+}
