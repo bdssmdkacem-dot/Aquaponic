@@ -231,3 +231,49 @@ class AquaController extends ChangeNotifier {
     resetArm = false;
     notifyListeners();
   }
+
+  void newGame({required bool withStarter}) {
+    sim = Sim();
+    _wire();
+    if (withStarter) sim.starter();
+    sim.speed = 1;
+    _speedBeforeModal = null;
+    introOpen = false;
+    helpOpen = false;
+    resetArm = false;
+    sel = null;
+    armed = null;
+    pending = null;
+    hover = null;
+    delArm = null;
+    tab = AquaTab.info;
+    _acc = 0;
+    _updateMission();
+    save();
+    notifyListeners();
+  }
+
+  void cycleSpeed() {
+    if (modalOpen) return;
+    final int i = kSpeeds.indexOf(sim.speed);
+    sim.speed = kSpeeds[(i + 1) % kSpeeds.length];
+    notifyListeners();
+  }
+
+  // --------------------------------------------------------------- tabs
+
+  void setTab(AquaTab t) {
+    tab = t;
+    if (t != AquaTab.build) {
+      armed = null;
+      pending = null;
+    }
+    delArm = null;
+    notifyListeners();
+  }
+
+  void arm(ObjType k) {
+    armed = armed == k ? null : k;
+    pending = null;
+    notifyListeners();
+  }
