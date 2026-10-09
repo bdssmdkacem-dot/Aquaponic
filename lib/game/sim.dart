@@ -628,3 +628,32 @@ class Sim {
     coins -= kPipeCost;
     rebuild();
   }
+
+  void plantAt(int gx, int gy, String crop) {
+    final GameObj? o = at(gx, gy);
+    if (o is! Bed) return;
+    final int i = slotAt(o, gx, gy);
+    if (i < 0) return;
+    final Slot s = o.slots[i];
+    final CropInfo? c = kCrops[crop];
+    if (c == null) return;
+    if (s.alive) return;
+    if (o.type == ObjType.tower && !c.tower) {
+      warnT('towercrop', '🌿 ${c.name} يحتاج حوضاً أفقياً وليس برجاً', 'warn', 3);
+      return;
+    }
+    if (coins < c.seed) {
+      warnT('nocoin', '💰 النقود لا تكفي', 'warn', 3);
+      return;
+    }
+    coins -= c.seed;
+    s.plant(crop);
+  }
+
+  void removeObj(GameObj o) {
+    final int refund = (kTypes[o.type]!.cost * 0.6).round();
+    coins += refund;
+    objs.remove(o);
+    rebuild();
+    toast('🗑️ تمت الإزالة (+$refund💰)', 'info');
+  }
