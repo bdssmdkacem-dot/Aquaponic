@@ -107,7 +107,7 @@ class _BuildPanel extends StatelessWidget {
       const SizedBox(height:5),
       Text(ctl.armed==null?'اختر جهازاً ثم المس مكاناً فارغاً في المشهد.':'تم اختيار ${kTypes[ctl.armed]!.name} — المس مكاناً لوضعه.',style:TextStyle(color:ac.muted,height:1.4)),
       const SizedBox(height:10),
-      Wrap(spacing:8,runSpacing:8,children:kTypes.entries.map((MapEntry<ObjType,TypeInfo> e)=>SizedBox(width:145,child:_ActionButton(label:'${e.value.icon} ${e.value.name}\n${e.value.cost} 💰',onTap:()=>ctl.arm(e.key),colors:ac,selected:ctl.armed==e.key))).toList()),
+      Wrap(spacing:8,runSpacing:8,children:kTypes.entries.map((MapEntry<ObjType,TypeInfo> e)=>SizedBox(width:145,child:_ActionButton(label:'${e.value.ico} ${e.value.name}\n${e.value.cost} 💰',onTap:()=>ctl.arm(e.key),colors:ac,selected:ctl.armed==e.key))).toList()),
       if(ctl.pending!=null)...<Widget>[const SizedBox(height:10),_ActionButton(label:'✅ تأكيد المكان',onTap:ctl.okPlace,colors:ac),const SizedBox(height:6),_ActionButton(label:'إلغاء',onTap:ctl.cancelPlace,colors:ac)],
       const SizedBox(height:10),
       Text('الرصيد الحالي: ${ctl.sim.coins} 💰',style:TextStyle(color:ac.ink,fontWeight:FontWeight.w700)),
@@ -146,7 +146,7 @@ class _PlantPanel extends StatelessWidget {
       const SizedBox(height:6),
       Text('اختر نوع البذور ثم المس خانات حوض الزراعة. الزراعة تستهلك نقوداً وتحتاج ماءً وفضلات أسماك.',style:TextStyle(color:ac.muted,height:1.5)),
       const SizedBox(height:10),
-      Wrap(spacing:8,runSpacing:8,children:kCrops.entries.map((MapEntry<String,CropInfo> e)=>SizedBox(width:145,child:_ActionButton(label:'${e.value.icon} ${e.value.name}\nبذور: ${e.value.seed} 💰',onTap:()=>ctl.setCrop(e.key),colors:ac,selected:ctl.crop==e.key))).toList()),
+      Wrap(spacing:8,runSpacing:8,children:kCrops.entries.map((MapEntry<String,CropInfo> e)=>SizedBox(width:145,child:_ActionButton(label:'${e.value.ico} ${e.value.name}\nبذور: ${e.value.seed} 💰',onTap:()=>ctl.setCrop(e.key),colors:ac,selected:ctl.crop==e.key))).toList()),
       const SizedBox(height:10),
       Text('البذور المختارة: ${kCrops[ctl.crop]!.name}',style:TextStyle(color:ac.ink,fontWeight:FontWeight.w700)),
     ]);
