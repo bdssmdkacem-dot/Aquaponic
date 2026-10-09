@@ -526,3 +526,59 @@ class ScenePainter {
       _emoji('⚠️', X + .5 * c, Y + .14 * c, .32 * c);
     }
   }
+er o) {
+    final double X = o.x * c, Y = o.y * c;
+    _shadow(X, Y);
+    final Path hopper = Path()
+      ..moveTo(X + .18 * c, Y + .22 * c)
+      ..lineTo(X + .82 * c, Y + .22 * c)
+      ..lineTo(X + .62 * c, Y + .62 * c)
+      ..lineTo(X + .38 * c, Y + .62 * c)
+      ..close();
+    cv.drawPath(hopper, _fill(const Color(0xFFE0B13A)));
+    cv.drawRRect(_rr(X + .3 * c, Y + .62 * c, .4 * c, .26 * c, 3), _fill(const Color(0xFF8C6B21)));
+    final Paint pellet = _fill(const Color(0xFFB5834A));
+    _circ(X + .42 * c, Y + .34 * c, .04 * c, pellet);
+    _circ(X + .56 * c, Y + .4 * c, .04 * c, pellet);
+    _circ(X + .5 * c, Y + .3 * c, .04 * c, pellet);
+    if (o.tank == null) _emoji('⚠️', X + .5 * c, Y + .1 * c, .32 * c);
+  }
+
+  // --------------------------------------------------------------- pipes
+
+  void _pipes() {
+    if (sim.pipes.isEmpty) return;
+    final List<_PipeInfo> info = <_PipeInfo>[];
+    for (final int k in sim.pipes) {
+      final int x = k % kCols;
+      final int y = k ~/ kCols;
+      final List<List<int>> dirs = <List<int>>[];
+      for (final List<int> d in kDirs) {
+        if (sim.conductAt(x + d[0], y + d[1])) dirs.add(d);
+      }
+      final Net? n = sim.pipeNet[k];
+      info.add(_PipeInfo(x, y, dirs, n != null && n.cap > 0));
+    }
+    Path segs(bool? flow) {
+      final Path p = Path();
+      for (final _PipeInfo q in info) {
+        if (flow != null && q.flow != flow) continue;
+        final double cx = (q.x + .5) * c, cy = (q.y + .5) * c;
+        for (final List<int> d in q.dirs) {
+          p
+            ..moveTo(cx, cy)
+            ..lineTo(cx + d[0] * c / 2, cy + d[1] * c / 2);
+        }
+      }
+      return p;
+    }
+
+    void dots(double r, Paint p, bool? flow) {
+      for (final _PipeInfo q in info) {
+        if (flow != null && q.flow != flow) continue;
+        cv.drawCircle(Offset((q.x + .5) * c, (q.y + .5) * c), r, p);
+      }
+    }
+
+    const Color outer = Color(0xFF4F5F6A);
+    cv.drawPath(segs(null), _stroke(outer, .34 * c, cap: StrokeCap.round));
