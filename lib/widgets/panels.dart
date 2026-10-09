@@ -97,3 +97,74 @@ class _Welcome extends StatelessWidget {
     );
   }
 }
+
+class _PipeInfo extends StatelessWidget {
+  final AquaController ctl;
+  final int pipeKey;
+  const _PipeInfo({required this.ctl, required this.pipeKey});
+
+  @override
+  Widget build(BuildContext context) {
+    final AquaColors ac = context.aqua;
+    final Net? n = ctl.sim.pipeNet[pipeKey];
+    if (n == null) return _Welcome(ctl: ctl);
+    final NetStatus st = ctl.sim.netStatus(n);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Row(
+          children: <Widget>[
+            Expanded(
+                child: Text('🔧 شبكة أنابيب',
+                    style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: ac.ink))),
+            Tag(text: st.text, ok: st.ok),
+          ],
+        ),
+        NoteText(
+            'أحواض سمك: ${n.tanks.length} · مضخات تعمل: ${n.active}/${n.pumps.length} · أحواض زراعة: ${n.beds.length}\n'
+            'سعة الري: ${n.cap} نبات · أنابيب: ${n.pipes}'),
+      ],
+    );
+  }
+}
+
+Widget _header(BuildContext context, String title, {String? tag, bool? tagOk}) {
+  final AquaColors ac = context.aqua;
+  return Row(
+    children: <Widget>[
+      Expanded(
+          child: Text(title, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: ac.ink))),
+      if (tag != null) Tag(text: tag, ok: tagOk),
+    ],
+  );
+}
+
+class _TankPanel extends StatelessWidget {
+  final AquaController ctl;
+  final Tank tank;
+  const _TankPanel({required this.ctl, required this.tank});
+
+  @override
+  Widget build(BuildContext context) {
+    final Sim s = ctl.sim;
+    final FishSpecies? sp = tank.species;
+    final bool has = tank.n > 0 && sp != null;
+    final int need = tank.n > 0 ? (tank.n / 4).ceil() : 0;
+    // sp is guaranteed non-null wherever `has` is true below; the `!` makes
+    // that explicit for the analyzer since it can't infer it from `has`.
+    final int val = has ? (tank.n * sp!.sell * tank.size).round() : 0;
+    final AquaColors ac = context.aqua;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        _header(context, '🐟 ${s.tankName(tank)}',
+            tag: has ? sp!.name : 'فارغ', tagOk: has),
+        const SizedBox(height: 8),
+        StatBar(label: 'الأكسجين', value: tank.o2, color: const Color(0xFF4CC3FF),
+            bad: has && tank.o2 < sp!.o2Min),
+        StatBar(label: 'نظافة الماء', value: 100 - tank.waste, color: const Color(0xFF4CC3FF),
+            bad: has && tank.waste > 50),
+        StatBar(label: 'الشبع', value: 100 - tank.hunger, color: const Color(0xFFFFB54A),
+            bad: has && tank.hunger > 60),
+        StatBar(label: 'الصحة', value: tank.health, color: const Color(0xFF46C878),
+            bad: has && tank.health < 45),
