@@ -199,3 +199,49 @@ class ScenePainter {
   void _grid(double w, double h) {
     final Paint p = _stroke(rgba(20, 70, 55, .14), 1);
     for (int i = 1; i < kCols; i++) {
+   cv.drawLine(Offset(i * c, 0), Offset(i * c, h), p);
+    }
+    for (int j = 1; j < sim.rows; j++) {
+      cv.drawLine(Offset(0, j * c), Offset(w, j * c), p);
+    }
+  }
+
+  // ---------------------------------------------------------------- tank
+
+  void _fish(double x, double y, double dir, double s, FishSpecies sp, bool flip) {
+    cv.save();
+    cv.translate(x, y);
+    cv.scale(dir, flip ? -1.0 : 1.0);
+    final Path tail = Path()
+      ..moveTo(-s * .8, 0)
+      ..lineTo(-s * 1.6, -s * .55)
+      ..lineTo(-s * 1.6, s * .55)
+      ..close();
+    cv.drawPath(tail, _fill(sp.tail));
+    cv.drawOval(Rect.fromCenter(center: Offset.zero, width: s * 2, height: s * 1.12), _fill(sp.body));
+    cv.drawOval(Rect.fromCenter(center: Offset(s * .05, s * .2), width: s * 1.4, height: s * .44),
+        _fill(rgba(255, 255, 255, .35)));
+    _circ(s * .55, -s * .12, s * .17, _fill(Colors.white));
+    _circ(s * .6, -s * .12, s * .09, _fill(const Color(0xFF1B2A30)));
+    cv.restore();
+  }
+
+  void _tank(Tank o) {
+    final double X = o.x * c, Y = o.y * c, w = o.w * c, h = o.h * c;
+    cv.drawRRect(_rr(X + .08 * c, Y + h - .14 * c, w - .16 * c, .14 * c, 3), _fill(const Color(0xFF7A6347)));
+    final double gx = X + .07 * c, gy = Y + .08 * c, gw = w - .14 * c, gh = h - .2 * c;
+    final double wl = gy + .22 * c;
+    cv.drawRRect(_rr(gx, gy, gw, gh, 7), _fill(rgba(255, 255, 255, .4)));
+    final double murk = clampD((o.waste - 22) / 60, 0, 1);
+    cv.save();
+    cv.clipRRect(_rr(gx + 1.5, gy + 1.5, gw - 3, gh - 3, 6));
+    cv.drawRect(
+        Rect.fromLTWH(gx, wl, gw, gh),
+        Paint()
+          ..shader = ui.Gradient.linear(Offset(0, wl), Offset(0, gy + gh), <Color>[
+            mixc(const Color(0xFF8ED6F7), const Color(0xFFA3B55F), murk),
+            mixc(const Color(0xFF2F86C8), const Color(0xFF587231), murk),
+          ]));
+    final Path wave = Path()..moveTo(gx, wl + 4);
+    for (double i = 0; i <= gw; i += 6) {
+      wave.lineTo(gx + i, wl + math.sin(tm * 2 + i * .09 + o.id) *
