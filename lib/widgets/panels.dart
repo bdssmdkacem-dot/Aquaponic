@@ -282,3 +282,23 @@ class _BedPanel extends StatelessWidget {
               const SizedBox(width: 6),
               Expanded(child: AquaBtn('🧹 تنظيف الميت',
                   onTap: dead > 0 ? () => ctl.cleanDead(bed) : null)),
+              const SizedBox(width: 6),
+              Expanded(child: AquaBtn(armedDel ? '⚠️ تأكيد (+$refund)' : '🗑️ إزالة',
+                  kind: BtnKind.danger, onTap: () => ctl.deletePressed(bed))),
+            ],
+          ),
+        ),
+        SubLabel(sub),
+        StatBar(label: 'النمو', value: avg((Slot x) => x.g) * 100, color: const Color(0xFF4FAE4A)),
+        StatBar(label: 'الماء', value: avg((Slot x) => x.water), color: const Color(0xFF3AA8E0),
+            bad: alive.isNotEmpty && avg((Slot x) => x.water) < 30),
+        StatBar(label: 'المغذيات', value: avg((Slot x) => x.nut), color: const Color(0xFFC08F34),
+            bad: alive.isNotEmpty && avg((Slot x) => x.nut) < 15),
+        StatBar(label: 'الصحة', value: alive.isEmpty ? 100 : avg((Slot x) => x.hp),
+            color: const Color(0xFF3FA860), bad: alive.isNotEmpty && avg((Slot x) => x.hp) < 50),
+        NoteText(note),
+      ],
+    );
+  }
+}
+
