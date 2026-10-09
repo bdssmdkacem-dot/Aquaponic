@@ -260,3 +260,25 @@ class _BedPanel extends StatelessWidget {
     } else {
       sub = 'متوسط النباتات (${alive.length}/${bed.slots.length})';
     }
+
+    final List<String> notes = <String>[];
+    if (ready > 0) notes.add('✨ جاهز للحصاد: $ready');
+    if (bed.thirsty) notes.add('💧 بعض النباتات عطشى — تحقق من المضخة والأنابيب.');
+    if (bed.starve) notes.add('🍂 نقص مغذيات — أضف أسماكاً أو قلل النباتات.');
+    final String note = notes.isEmpty
+        ? 'المس النبات لمتابعته، والمس النبات الناضج (✨) لحصاده.'
+        : notes.join('\n');
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        _header(context, kTypes[bed.type]!.name, tag: st.text, tagOk: st.ok),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            children: <Widget>[
+              Expanded(child: AquaBtn('🌾 حصاد الناضج',
+                  kind: BtnKind.primary, onTap: ready > 0 ? () => ctl.harvestAll(bed) : null)),
+              const SizedBox(width: 6),
+              Expanded(child: AquaBtn('🧹 تنظيف الميت',
+                  onTap: dead > 0 ? () => ctl.cleanDead(bed) : null)),
