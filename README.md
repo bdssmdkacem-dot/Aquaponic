@@ -1,3 +1,4 @@
+
 # Aquaponics (Flutter)
 
 Native Android/iOS port of the Aquaponics web game: build fish tanks, oxygen pumps, water pumps, pipes and grow beds/towers; keep fish fed and oxygenated and plants watered and fertilized by fish waste, or they die. Arabic UI, RTL, light/dark theme, autosave via `shared_preferences`.
