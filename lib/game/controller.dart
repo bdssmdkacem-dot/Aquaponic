@@ -277,3 +277,51 @@ class AquaController extends ChangeNotifier {
     pending = null;
     notifyListeners();
   }
+
+  void okPlace() {
+    final Pt? p = pending;
+    final ObjType? k = armed;
+    if (p == null || k == null) return;
+    final GameObj? o = sim.placeObj(k, p.x, p.y);
+    if (o != null) {
+      armed = null;
+      pending = null;
+      sel = Selection.obj(o.id);
+      tab = AquaTab.info;
+      delArm = null;
+      showToast('✅ تم وضع ${kTypes[k]!.name}', 'good');
+    }
+    notifyListeners();
+  }
+
+  void cancelPlace() {
+    pending = null;
+    notifyListeners();
+  }
+
+  void setCrop(String k) {
+    crop = k;
+    notifyListeners();
+  }
+
+  void setPipeMode(PipeMode m) {
+    pipeMode = m;
+    notifyListeners();
+  }
+
+  // ------------------------------------------------------------ actions
+
+  void feed(Tank t) {
+    sim.feedTank(t);
+    notifyListeners();
+  }
+
+  void sell(Tank t) {
+    sim.sellFish(t);
+    notifyListeners();
+  }
+
+  void fry(Tank t, String k) {
+    sim.buyFry(t, k);
+    notifyListeners();
+  }
