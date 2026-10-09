@@ -526,7 +526,7 @@ class ScenePainter {
       _emoji('⚠️', X + .5 * c, Y + .14 * c, .32 * c);
     }
   }
-er o) {
+  void _feeder(Feeder o) {
     final double X = o.x * c, Y = o.y * c;
     _shadow(X, Y);
     final Path hopper = Path()
@@ -582,7 +582,6 @@ er o) {
 
     const Color outer = Color(0xFF4F5F6A);
     cv.drawPath(segs(null), _stroke(outer, .34 * c, cap: StrokeCap.round));
-rokeCap.round));
     dots(.17 * c, _fill(outer), null);
     for (final bool fl in const <bool>[false, true]) {
       final Color inner = fl ? const Color(0xFF67BFF0) : const Color(0xFFCBD5DB);
