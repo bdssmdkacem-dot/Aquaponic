@@ -186,3 +186,48 @@ class AquaController extends ChangeNotifier {
       sim.missionStep++;
     }
   }
+
+  Future<void> save() async {
+    final SharedPreferences? p = _prefs;
+    if (p == null) return;
+    try {
+      await p.setString(kSaveKey, jsonEncode(sim.toJson()));
+    } catch (_) {}
+  }
+
+  // ------------------------------------------------------------- modals
+
+  void _openModal({bool intro = false, bool help = false}) {
+    _speedBeforeModal ??= sim.speed;
+    introOpen = intro;
+    helpOpen = help;
+    resetArm = false;
+  }
+
+  void openHelp() {
+    _openModal(help: true);
+    notifyListeners();
+  }
+
+  void closeModal() {
+    introOpen = false;
+    helpOpen = false;
+    resetArm = false;
+    final int? sp = _speedBeforeModal;
+    _speedBeforeModal = null;
+    if (sp != null) sim.speed = sp;
+    notifyListeners();
+  }
+
+  /// First tap arms the reset, second tap shows the "new game" chooser.
+  void resetPressed() {
+    if (!resetArm) {
+      resetArm = true;
+      notifyListeners();
+      return;
+    }
+    introOpen = true;
+    helpOpen = false;
+    resetArm = false;
+    notifyListeners();
+  }
