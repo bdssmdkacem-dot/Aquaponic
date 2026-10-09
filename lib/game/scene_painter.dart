@@ -62,7 +62,7 @@ class ScenePainter {
   }
 
   TextPainter _tpFor(String s, double size, Color col, FontWeight weight) {
-    final String key = '$s|${size.round()}|${col.hashCode}|${weight.index}';
+    final String key = '$s|${size.round()}|${col.hashCode}|${weight.value}';
     TextPainter? tp = _tpCache[key];
     if (tp == null) {
       if (_tpCache.length > 400) _tpCache.clear();
