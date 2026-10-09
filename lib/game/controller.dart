@@ -470,3 +470,62 @@ class AquaController extends ChangeNotifier {
     }
     notifyListeners();
   }
+
+  void pointerMove(double cx, double cy) {
+    final int gx = cx.floor();
+    final int gy = cy.floor();
+    final _Ptr? p = _ptr;
+    if (p == null) {
+      hover = Pt(gx, gy);
+      return;
+    }
+    hover = Pt(gx, gy);
+    final double dx = cx - p.sx;
+    final double dy = cy - p.sy;
+    if (dx * dx + dy * dy > 0.06) p.moved = true;
+    if (gx != p.lx || gy != p.ly) {
+      final AquaTool tl = tool;
+      if (tl == AquaTool.pipe) {
+        for (final Pt c in _line(p.lx, p.ly, gx, gy)) {
+          sim.paintPipe(c.x, c.y, pipeMode == PipeMode.erase);
+        }
+      } else if (tl == AquaTool.plant) {
+        for (final Pt c in _line(p.lx, p.ly, gx, gy)) {
+          sim.plantAt(c.x, c.y, crop);
+        }
+      }
+      p.lx = gx;
+      p.ly = gy;
+    }
+  }
+
+  void pointerUp(double cx, double cy) {
+    final _Ptr? p = _ptr;
+    if (p == null) return;
+    _ptr = null;
+    final int gx = cx.floor();
+    final int gy = cy.floor();
+    final AquaTool tl = tool;
+    if (tl == AquaTool.select) {
+      if (!p.moved) tapSelect(gx, gy);
+    } else if (tl == AquaTool.build) {
+      final ObjType? k = armed;
+      if (k != null) {
+        final Pt pos = anchor(gx, gy, k);
+        if (p.touch) {
+          pending = pos;
+          hover = null;
+        } else {
+          pending = pos;
+          okPlace();
+        }
+      }
+    }
+    if (p.touch) hover = null;
+    notifyListeners();
+  }
+
+  void pointerCancel() {
+    _ptr = null;
+    hover = null;
+  }
