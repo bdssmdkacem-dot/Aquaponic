@@ -23,8 +23,8 @@ lib/
 ## Setup
 
 This was written and syntax-checked (tree-sitter, 0 parse errors across all
-15 files) in a sandbox with no access to the Flutter SDK or pub.dev, so it has
-**not** been compiled or run. Carefully reviewed for API correctness, but
+15 files) in a sandbox with no access to the Flutter SDK or pub.dev, so it
+has **not** been compiled or run. Carefully reviewed for API correctness, but
 run `flutter analyze` first thing.
 
 ```bash
