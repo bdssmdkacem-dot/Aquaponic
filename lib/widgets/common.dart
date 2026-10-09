@@ -12,9 +12,9 @@ class Tag extends StatelessWidget {
   Widget build(BuildContext context) {
     final AquaColors ac = context.aqua;
     final Color bg = ok == true
-        ? ac.good.withOpacity(.16)
+        ? ac.good.withValues(alpha: .16)
         : ok == false
-            ? ac.danger.withOpacity(.15)
+            ? ac.danger.withValues(alpha: .15)
             : ac.surface2;
     final Color fg = ok == true ? ac.good : (ok == false ? ac.danger : ac.ink);
     return Container(
