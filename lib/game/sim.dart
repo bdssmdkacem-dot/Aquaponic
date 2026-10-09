@@ -118,4 +118,87 @@ class Sim {
       }
     }
     pipes.removeWhere((int k) {
-      final int x
+      final int x = k % kCols;
+      final int y = k ~/ kCols;
+      return !inb(x, y) || grid[y][x] != null;
+    });
+
+    final Map<int, int> par = <int, int>{};
+    int nodeOf(int x, int y) {
+      if (!inb(x, y)) return -1;
+      final GameObj? o = grid[y][x];
+      if (o != null) {
+        return (o is Tank || o is Bed || o is Pump) ? 100000 + o.id : -1;
+      }
+      return isPipe(x, y) ? pk(x, y) : -1;
+    }
+
+    int find(int a) {
+      int r = a;
+      while (par[r] != r) {
+        r = par[r]!;
+      }
+      int cur = a;
+      while (par[cur] != r) {
+        final int nx = par[cur]!;
+        par[cur] = r;
+        cur = nx;
+      }
+      return r;
+    }
+
+    bool isLine(int x, int y) => isPipe(x, y) || grid[y][x] is Pump;
+
+    for (int y = 0; y < rows; y++) {
+      for (int x = 0; x < kCols; x++) {
+        final int a = nodeOf(x, y);
+        if (a < 0) continue;
+        par.putIfAbsent(a, () => a);
+        for (final List<int> d in const <List<int>>[
+          <int>[1, 0],
+          <int>[0, 1]
+        ]) {
+          final int nx = x + d[0];
+          final int ny = y + d[1];
+          final int b = nodeOf(nx, ny);
+          if (b < 0 || b == a) continue;
+          par.putIfAbsent(b, () => b);
+          if (isLine(x, y) || isLine(nx, ny)) {
+            final int ra = find(a);
+            final int rb = find(b);
+            if (ra != rb) par[ra] = rb;
+          }
+        }
+      }
+    }
+
+    final Map<int, Net> groups = <int, Net>{};
+    nets = <Net>[];
+    pipeNet = <int, Net>{};
+    Net netFor(int a) {
+      final int r = find(a);
+      Net? n = groups[r];
+      if (n == null) {
+        n = Net();
+        groups[r] = n;
+        nets.add(n);
+      }
+      return n;
+    }
+
+    for (final GameObj o in objs) {
+      o.net = null;
+      if (o is Tank || o is Bed || o is Pump) {
+        final int a = 100000 + o.id;
+        if (!par.containsKey(a)) continue;
+        final Net n = netFor(a);
+        o.net = n;
+        if (o is Tank) {
+          n.tanks.add(o);
+        } else if (o is Pump) {
+          n.pumps.add(o);
+        } else if (o is Bed) {
+          n.beds.add(o);
+        }
+      }
+    }
