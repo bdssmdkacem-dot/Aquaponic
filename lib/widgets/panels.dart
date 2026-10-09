@@ -434,3 +434,63 @@ class _BuildPanel extends StatelessWidget {
             return NoteText('اختر مكاناً في الدفيئة لوضع ${tp.name}.');
           }),
         ],
+        ] else
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Text('اختر عنصراً ثم المس المكان المناسب في الدفيئة:',
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: ac.ink)),
+          ),
+        TwoColGrid(
+          children: kTypes.entries.map((MapEntry<ObjType, TypeInfo> e) {
+            final TypeInfo tp = e.value;
+            return ItemCard(
+              title: '${tp.ico} ${tp.name}',
+              small: '${tp.cost}💰 · ${tp.w}×${tp.h}',
+              desc: tp.desc,
+              selected: armed == e.key,
+              onTap: () => ctl.arm(e.key),
+            );
+          }).toList(),
+        ),
+        const SizedBox(height: 8),
+        if (expandCost != null)
+          AquaBtn('↕️ توسيع الدفيئة (+2 صفوف) · $expandCost💰', onTap: ctl.expand)
+        else
+          const NoteText('✔ الدفيئة في أقصى حجمها.'),
+      ],
+    );
+  }
+}
+
+// ---------------------------------------------------------------- pipe tab
+
+class _PipePanel extends StatelessWidget {
+  final AquaController ctl;
+  const _PipePanel({required this.ctl});
+
+  @override
+  Widget build(BuildContext context) {
+    final AquaColors ac = context.aqua;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Text('🔧 الأنابيب توصل المضخة بالحوض وبأحواض الزراعة. اسحب إصبعك على الدفيئة لرسمها ($kPipeCost💰 للخلية).',
+            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: ac.ink)),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            children: <Widget>[
+              Expanded(child: AquaBtn('✏️ رسم',
+                  selected: ctl.pipeMode == PipeMode.draw, onTap: () => ctl.setPipeMode(PipeMode.draw))),
+              const SizedBox(width: 6),
+              Expanded(child: AquaBtn('🧽 إزالة',
+                  selected: ctl.pipeMode == PipeMode.erase, onTap: () => ctl.setPipeMode(PipeMode.erase))),
+            ],
+          ),
+        ),
+        const NoteText('المضخة تحتاج أنابيب متصلة بحوض السمك وبأحواض الزراعة حتى يصل الماء والمغذيات.'),
+      ],
+    );
+  }
+}
+
