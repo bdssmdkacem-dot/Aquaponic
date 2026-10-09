@@ -371,3 +371,66 @@ class _AirPanel extends StatelessWidget {
   }
 }
 
+class _FeederPanel extends StatelessWidget {
+  final AquaController ctl;
+  final Feeder feeder;
+  const _FeederPanel({required this.ctl, required this.feeder});
+
+  @override
+  Widget build(BuildContext context) {
+    final bool armedDel = ctl.delArm == feeder.id;
+    final int refund = (kTypes[ObjType.feeder]!.cost * 0.6).round();
+    final Tank? t = feeder.tank;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        _header(context, '🥣 مغذٍّ آلي',
+            tag: t != null ? '✔ يخدم ${ctl.sim.tankName(t)}' : '✖ غير ملاصق لحوض', tagOk: t != null),
+        NoteText(
+            'يطعم الحوض الملاصق تلقائياً عند ارتفاع الجوع فوق 40%.\nالطعام المتاح: ${ctl.sim.food} وجبة — لا تنسَ إعادة التخزين.'),
+        AquaBtn(armedDel ? '⚠️ اضغط للتأكيد (+$refund💰)' : '🗑️ إزالة',
+            kind: BtnKind.danger, onTap: () => ctl.deletePressed(feeder)),
+      ],
+    );
+  }
+}
+
+// --------------------------------------------------------------- build tab
+
+class _BuildPanel extends StatelessWidget {
+  final AquaController ctl;
+  const _BuildPanel({required this.ctl});
+
+  @override
+  Widget build(BuildContext context) {
+    final AquaColors ac = context.aqua;
+    final Sim s = ctl.sim;
+    final ObjType? armed = ctl.armed;
+    final int expandIdx = (s.rows - kMinRows) ~/ 2;
+    final int? expandCost = expandIdx < kExpand.length ? kExpand[expandIdx] : null;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        if (armed != null) ...<Widget>[
+          Builder(builder: (BuildContext context) {
+            final TypeInfo tp = kTypes[armed]!;
+            final Pt? pending = ctl.pending;
+            if (pending != null) {
+              final bool ok = s.canPlace(armed, pending.x, pending.y);
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text('ضع ${tp.name} في الدفيئة', style: TextStyle(color: ac.ink, fontWeight: FontWeight.w700)),
+                  NoteText(ok ? 'المكان صالح — اضغط «تأكيد».' : 'المكان مشغول أو خارج الدفيئة.'),
+                  Row(children: <Widget>[
+                    Expanded(child: AquaBtn('تأكيد البناء', kind: BtnKind.primary, onTap: ok ? ctl.okPlace : null)),
+                    const SizedBox(width: 6),
+                    Expanded(child: AquaBtn('إلغاء', onTap: ctl.cancelPlace)),
+                  ]),
+                ],
+              );
+            }
+            return NoteText('اختر مكاناً في الدفيئة لوضع ${tp.name}.');
+          }),
+        ],
