@@ -127,7 +127,7 @@ class AquaController extends ChangeNotifier {
         return AquaTool.plant;
       case AquaTab.build:
         return armed != null ? AquaTool.build : AquaTool.select;
-     default:
+      default:
         return AquaTool.select;
     }
   }
@@ -155,6 +155,7 @@ class AquaController extends ChangeNotifier {
     });
     notifyListeners();
   }
+
   // --------------------------------------------------------------- loop
 
   void tick(double dt) {
