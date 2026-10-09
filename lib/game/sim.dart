@@ -513,3 +513,72 @@ class Sim {
     }
     return true;
   }
+
+  bool buyFry(Tank o, String k) {
+    final FishSpecies? f = kFish[k];
+    if (f == null) return false;
+    if (o.n > 0 && o.sp != k) {
+      toast('لا يمكن خلط أنواع السمك في حوض واحد', 'warn');
+      return false;
+    }
+    final int room = kFishCap - o.n;
+    if (room <= 0) {
+      toast('الحوض ممتلئ', 'warn');
+      return false;
+    }
+    final int q = math.min(4, room);
+    final int cost = q * f.price;
+    if (coins < cost) {
+      toast('💰 النقود لا تكفي', 'warn');
+      return false;
+    }
+    coins -= cost;
+    if (o.n == 0) {
+      o.sp = k;
+      o.size = 0.05;
+      o.health = 100;
+      o.hunger = 30;
+    } else {
+      o.size = (o.size * o.n + 0.05 * q) / (o.n + q);
+      o.hunger = (o.hunger * o.n + 30.0 * q) / (o.n + q);
+    }
+    o.n += q;
+    toast('🐟 أُضيف $q من ${f.name}', 'good');
+    return true;
+  }
+
+  bool sellFish(Tank o) {
+    final FishSpecies? sp = o.species;
+    if (sp == null || o.n <= 0) return false;
+    if (o.size < 0.6) {
+      toast('الأسماك لم تكبر بعد — تُباع عند 60% نمو', 'warn');
+      return false;
+    }
+    final int v = (o.n * sp.sell * o.size).round();
+    coins += v;
+    statFish += o.n;
+    addFloater(o.x + o.w / 2, o.y + 0.8, '+$v', const Color(0xFFFFE27A));
+    o.n = 0;
+    o.size = 0;
+    o.health = 100;
+    toast('💰 بعت الأسماك مقابل $v', 'good');
+    return true;
+  }
+
+  int slotAt(Bed b, int gx, int gy) {
+    for (int i = 0; i < b.slots.length; i++) {
+      final Pt p = slotPos(b, i);
+      if (p.x == gx && p.y == gy) return i;
+    }
+    return -1;
+  }
+
+  void harvestSlot(Bed b, int i) {
+    final Slot s = b.slots[i];
+    final CropInfo c = kCrops[s.crop]!;
+    final Pt p = slotPos(b, i);
+    coins += c.sell;
+    statHarv++;
+    addFloater(p.x + 0.5, p.y + 0.3, '+${c.sell}', const Color(0xFFFFE27A));
+    s.clear();
+  }
