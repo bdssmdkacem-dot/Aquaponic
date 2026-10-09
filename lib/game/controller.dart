@@ -127,4 +127,31 @@ class AquaController extends ChangeNotifier {
         return AquaTool.plant;
       case AquaTab.build:
         return armed != null ? AquaTool.build : AquaTool.select;
- 
+     default:
+        return AquaTool.select;
+    }
+  }
+
+  GameObj? get selObj {
+    final Selection? s = sel;
+    if (s == null || s.kind != SelKind.obj) return null;
+    for (final GameObj o in sim.objs) {
+      if (o.id == s.id) return o;
+    }
+    return null;
+  }
+
+  String get missionText => kMission[clampI(sim.missionStep, 0, kMission.length - 1)].txt;
+
+  // -------------------------------------------------------------- toast
+
+  void showToast(String msg, String kind) {
+    toastMsg = msg;
+    toastKind = kind;
+    _toastTimer?.cancel();
+    _toastTimer = Timer(const Duration(milliseconds: 4200), () {
+      toastMsg = null;
+      notifyListeners();
+    });
+    notifyListeners();
+  }
