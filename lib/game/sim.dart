@@ -608,3 +608,23 @@ class Sim {
     coins -= cost;
     return addObj(k, x, y);
   }
+
+  void paintPipe(int gx, int gy, bool erase) {
+    if (!inb(gx, gy)) return;
+    final int k = pk(gx, gy);
+    if (erase) {
+      if (pipes.remove(k)) {
+        coins += 1;
+        rebuild();
+      }
+      return;
+    }
+    if (pipes.contains(k) || grid[gy][gx] != null) return;
+    if (coins < kPipeCost) {
+      warnT('nocoin', '💰 النقود لا تكفي', 'warn', 3);
+      return;
+    }
+    pipes.add(k);
+    coins -= kPipeCost;
+    rebuild();
+  }
