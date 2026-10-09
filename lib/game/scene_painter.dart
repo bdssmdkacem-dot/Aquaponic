@@ -244,4 +244,45 @@ class ScenePainter {
           ]));
     final Path wave = Path()..moveTo(gx, wl + 4);
     for (double i = 0; i <= gw; i += 6) {
-      wave.lineTo(gx + i, wl + math.sin(tm * 2 + i * .09 + o.id) *
+      wave.lineTo(gx + i, wl + math.sin(tm * 2 + i * .09 + o.id) *1.8);
+    }
+    wave
+      ..lineTo(gx + gw, wl + 4)
+      ..close();
+    cv.drawPath(wave, _fill(rgba(255, 255, 255, .4)));
+    cv.drawRect(Rect.fromLTWH(gx, gy + gh - .17 * c, gw, .17 * c), _fill(const Color(0xFFB8A889)));
+    final Paint pebble = _fill(const Color(0xFF9B8B70));
+    final int nPeb = (gw / (.2 * c)).floor();
+    for (int i = 0; i < nPeb; i++) {
+      _circ(gx + (i + .5) * .2 * c, gy + gh - .085 * c + (i.isOdd ? .025 * c : -.025 * c), .04 * c, pebble);
+    }
+    final int air = math.min(o.air, 3);
+    for (int j = 0; j < air; j++) {
+      final double bx = gx + gw * (air == 1 ? .5 : (.25 + .5 * j / (air - 1)));
+      cv.drawRRect(_rr(bx - .12 * c, gy + gh - .24 * c, .24 * c, .09 * c, 3), _fill(const Color(0xFF8AA0AB)));
+      final Paint bub = _stroke(rgba(255, 255, 255, .85), 1.2);
+      for (int k = 0; k < 6; k++) {
+        final double ph = (tm * .45 + k / 6 + j * .31) % 1;
+        final double by = gy + gh - .24 * c - ph * (gh - .55 * c);
+        final double bxx = bx + math.sin((ph + k) * 7) * .12 * c;
+        cv.drawCircle(Offset(bxx, by), (.04 + .04 * hash((k + j * 9).toDouble())) * c, bub);
+      }
+    }
+    final FishSpecies? sp = o.species;
+    if (sp != null && o.n > 0) {
+      final int cnt = math.min(o.n, 14);
+      final bool sick = o.health < 25;
+      final double top = wl + .3 * c;
+      final double bot = gy + gh - .32 * c;
+      final double s = c * (.14 + .13 * o.size);
+      for (int i = 0; i < cnt; i++) {
+        final double r1 = hash(i * 3.1 + o.id);
+        final double r2 = hash(i * 7.7 + o.id * 2);
+        final double r3 = hash(i * 1.9 + o.id * 5);
+        final double r4 = hash(i * 5.3 + o.id * 3);
+        final double amp = (.2 + .3 * r1) * gw;
+        final double spd = .3 + .5 * r2;
+        final double ph = r3 * 6.28;
+        final double xx = gx + gw / 2 + math.sin(tm * spd + ph) * amp * .9;
+        final double dir = math.cos(tm * spd + ph) >= 0 ? 1.0 : -1.0;
+        double yy = top + (bot - top) * (.1 + .8 * r4) +
