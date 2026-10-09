@@ -363,3 +363,88 @@ class Sim {
       if (o.n == 0) o.size = 0;
       toast('💀 نفقت $k من الأسماك في ${tankName(o)}', 'bad');
     }
+
+    if (o.n > 0 && o.health > 40) {
+      o.size = math.min(
+          1.0,
+          o.size +
+              dt / sp.growSec * (1 - o.hunger / 100) * (o.o2 > 25 ? 1.0 : 0.3));
+    }
+    if (o.n > 0) {
+      o.bad = TankBad(o.o2 < sp.o2Min + 8, o.waste > 50, o.hunger > 60);
+    } else {
+      o.bad = null;
+    }
+    final TankBad? b = o.bad;
+    if (b != null) {
+      if (b.o2) {
+        warnT('o2${o.id}', '💨 الأكسجين منخفض في ${tankName(o)} — ضع مضخة أكسجين ملاصقة', 'warn');
+      }
+      if (b.waste) {
+        warnT('w${o.id}', '☠️ الفضلات مرتفعة في ${tankName(o)} — أضف نباتات ووصّلها بمضخة وأنابيب', 'warn');
+      }
+      if (b.hunger) {
+        warnT('h${o.id}', '🍽️ أسماك ${tankName(o)} جائعة — أطعمها', 'warn');
+      }
+    }
+  }
+
+  void stepPump(Pump o, double dt) {
+    final Net? n = o.net;
+    if (!o.broken &&
+        t > 150 &&
+        n != null &&
+        n.tanks.isNotEmpty &&
+        rng.nextDouble() < dt / 500) {
+      o.broken = true;
+      toast('🔧 انسدت مضخة الماء — اضغط عليها لتنظيفها', 'bad');
+    }
+  }
+
+  void stepFeeder(Feeder o, double dt) {
+    o.timer -= dt;
+    if (o.timer > 0) return;
+    o.timer = 8;
+    final Tank? tk = o.tank;
+    if (tk != null && tk.n > 0 && tk.hunger > 40) feedTank(tk, auto: true);
+  }
+
+  void stepNet(Net n, double dt) {
+    final List<Slot> slots = <Slot>[];
+    for (final Bed b in n.beds) {
+      for (final Slot s in b.slots) {
+        if (s.alive) slots.add(s);
+      }
+    }
+    final double ratio =
+        n.cap > 0 ? math.min(1.0, n.cap / math.max(1, slots.length)) : 0.0;
+    double demand = 0;
+    for (final Slot s in slots) {
+      demand += kCrops[s.crop]!.nut * (s.g >= 1 ? 0.5 : 1.0) * dt;
+    }
+    double avail = 0;
+    for (final Tank tk in n.tanks) {
+      avail += math.max(0.0, tk.waste - 4);
+    }
+    double sup = 0;
+    if (ratio > 0 && demand > 0) {
+      final double req = demand * ratio;
+      final double taken = math.min(req, avail);
+      sup = taken / req;
+      if (avail > 0) {
+        for (final Tank tk in n.tanks) {
+          tk.waste -= taken * math.max(0.0, tk.waste - 4) / avail;
+        }
+      }
+    }
+    n.ratio = ratio;
+    for (final Bed b in n.beds) {
+      bool thirsty = false;
+      bool starve = false;
+      for (final Slot s in b.slots) {
+        if (!s.alive) continue;
+        updateSlot(s, ratio, sup, dt);
+        if (s.dead) continue;
+        if (s.water < 30) thirsty = true;
+        if (s.nut < 15) starve = true;
+      }
