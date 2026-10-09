@@ -325,4 +325,53 @@ class ScenePainter {
           Rect.fromLTWH(x, y, w, h),
           Paint()
             ..shader = ui.Gradient.linear(Offset(0, y), Offset(0, y + h),
-                const <Color>[Color(0xFF8FD5F7), Color(
+                const <Color>[Color(0xFF8FD5F7), Color(0xFF3A93D0)]));
+      final Path p = Path();
+      for (int k = 0; k < 2; k++) {
+        final double yy = y + h * (.35 + .3 * k);
+        p.moveTo(x, yy);
+        for (double i = 0; i <= w; i += 5) {
+          p.lineTo(x + i, yy + math.sin(tm * 2.4 + i * .12 + k) * 1.6);
+        }
+      }
+      cv.drawPath(p, _stroke(rgba(255, 255, 255, .55), 1.5));
+    } else {
+      cv.drawRect(Rect.fromLTWH(x, y, w, h), _fill(const Color(0xFFD9C9A8)));
+      final Path p = Path()
+        ..moveTo(x + w * .2, y + h)
+        ..lineTo(x + w * .35, y + h * .4)
+        ..moveTo(x + w * .6, y + h)
+        ..lineTo(x + w * .7, y + h * .5);
+      cv.drawPath(p, _stroke(rgba(120, 90, 50, .35), 1.5));
+    }
+    cv.restore();
+  }
+
+  void _bed(Bed o) {
+    final double X = o.x * c, Y = o.y * c, w = o.w * c;
+    final Net? n = o.net;
+    final bool flow = n != null && n.cap > 0;
+    cv.drawRRect(_rr(X + .04 * c, Y + .7 * c, w - .08 * c, .3 * c, 4), _fill(const Color(0xFF7F6045)));
+    final Paint dots = _fill(const Color(0xFF6A4E37));
+    for (int i = 0; i < o.w * 4; i++) {
+      _circ(X + (i + .5) * c / 4, Y + .86 * c + ((i * 7) % 3 - 1) * .03 * c, .035 * c, dots);
+    }
+    final RRect tray = _rr(X + .02 * c, Y + 1.02 * c, w - .04 * c, .96 * c, 6);
+    cv.drawRRect(tray, _fill(const Color(0xFFB8905F)));
+    cv.drawRRect(tray, _stroke(const Color(0xFF8F6A40), 2));
+    _waterWindow(X + .14 * c, Y + 1.2 * c, w - .28 * c, .56 * c, flow);
+    for (int i = 0; i < o.slots.length; i++) {
+      final Pt p = slotPos(o, i);
+      final Slot s = o.slots[i];
+      if (s.has) _plant((p.x + .5) * c, (p.y + .78) * c, s);
+    }
+    if (o.thirsty && !flow) _emoji('🔌', X + w - .3 * c, Y + 1.5 * c, .34 * c);
+  }
+
+  void _tower(Bed o) {
+    final double X = o.x * c, Y = o.y * c, w = o.w * c;
+    final Net? n = o.net;
+    final bool flow = n != null && n.cap > 0;
+    final RRect pillar = _rr(X + w / 2 - .07 * c, Y + .05 * c, .14 * c, 3.1 * c, 3);
+    cv.drawRRect(pillar, _fill(const Color(0xFFE8EEF2)));
+    cv.
