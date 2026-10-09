@@ -150,21 +150,79 @@ class _TankPanel extends StatelessWidget {
     final FishSpecies? sp = tank.species;
     final bool has = tank.n > 0 && sp != null;
     final int need = tank.n > 0 ? (tank.n / 4).ceil() : 0;
-    // sp is guaranteed non-null wherever `has` is true below; the `!` makes
-    // that explicit for the analyzer since it can't infer it from `has`.
     final int val = has ? (tank.n * sp!.sell * tank.size).round() : 0;
-    final AquaColors ac = context.aqua;
+    final bool armedDel = ctl.delArm == tank.id;
+    final int refund = (kTypes[ObjType.tank]!.cost * 0.6).round();
+
+    String tip;
+    if (!has) {
+      tip = 'اشترِ صغار السمك لبدء الإنتاج.';
+    } else if (tank.o2 < sp!.o2Min + 8) {
+      tip = '⚠ الأكسجين منخفض — ضع مضخة أكسجين ملاصقة للحوض.';
+    } else if (tank.waste > 50) {
+      tip = '⚠ الفضلات عالية — وصّل الحوض بأحواض زراعة (مضخة + أنابيب).';
+    } else if (tank.hunger > 60) {
+      tip = '⚠ الأسماك جائعة — اضغط «أطعم».';
+    } else {
+      tip = '✔ الحوض بحالة جيدة.';
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        _header(context, '🐟 ${s.tankName(tank)}',
-            tag: has ? sp!.name : 'فارغ', tagOk: has),
-        const SizedBox(height: 8),
-        StatBar(label: 'الأكسجين', value: tank.o2, color: const Color(0xFF4CC3FF),
-            bad: has && tank.o2 < sp!.o2Min),
-        StatBar(label: 'نظافة الماء', value: 100 - tank.waste, color: const Color(0xFF4CC3FF),
+        _header(context, s.tankName(tank), tag: has ? '${sp!.name} × ${tank.n}' : 'فارغ', tagOk: has),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            children: <Widget>[
+              Expanded(
+                  child: AquaBtn(has ? '🍽️ أطعم ($need)' : '🍽️ أطعم',
+                      kind: BtnKind.primary, onTap: has ? () => ctl.feed(tank) : null)),
+              const SizedBox(width: 6),
+              Expanded(
+                  child: AquaBtn('💰 بيع ($val)',
+                      onTap: (has && tank.size >= 0.6) ? () => ctl.sell(tank) : null)),
+              const SizedBox(width: 6),
+              Expanded(
+                  child: AquaBtn(armedDel ? '⚠️ تأكيد (+$refund)' : '🗑️ إزالة',
+                      kind: BtnKind.danger, onTap: () => ctl.deletePressed(tank))),
+            ],
+          ),
+        ),
+        StatBar(
+            label: 'الأكسجين',
+            value: tank.o2,
+            color: const Color(0xFF3AA8E0),
+            bad: has && tank.o2 < sp!.o2Min + 8),
+        StatBar(
+            label: 'الفضلات (أمونيا)',
+            value: tank.waste,
+            color: const Color(0xFFC08F34),
             bad: has && tank.waste > 50),
-        StatBar(label: 'الشبع', value: 100 - tank.hunger, color: const Color(0xFFFFB54A),
-            bad: has && tank.hunger > 60),
-        StatBar(label: 'الصحة', value: tank.health, color: const Color(0xFF46C878),
-            bad: has && tank.health < 45),
+        StatBar(label: 'الجوع', value: tank.hunger, color: const Color(0xFFE8952A), bad: has && tank.hunger > 60),
+        StatBar(
+            label: 'صحة الأسماك',
+            value: has ? tank.health : 100,
+            color: const Color(0xFF3FA860),
+            bad: has && tank.health < 40),
+        StatBar(label: 'النمو (بيع من 60%)', value: has ? tank.size * 100 : 0, color: const Color(0xFF7A6BE0)),
+        NoteText('مضخات الأكسجين: ${tank.air} · مغذّيات آلية: ${tank.feeders.length}\n$tip'),
+        const SubLabel('➕ أضف 4 صغار سمك'),
+        TwoColGrid(
+          children: kFish.entries.map((MapEntry<String, FishSpecies> e) {
+            final FishSpecies f = e.value;
+            final bool allowed = !has || tank.sp == e.key;
+            final int cost = f.price * 4;
+            return ItemCard(
+              title: '${f.ico} ${f.name}',
+              small: '4 صغار · ${cost}💰',
+              desc: f.desc,
+              onTap: allowed && s.coins >= cost ? () => ctl.fry(tank, e.key) : null,
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+}
+
